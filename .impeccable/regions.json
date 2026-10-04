@@ -1,0 +1,47 @@
+{
+  "regions": [
+    { "id": "sidebar-shell", "kind": "chrome", "box": { "x": 0, "y": 0, "w": 0.184, "h": 1 }, "note": "pale left navigation rail containing Splitlie brand, space switcher and existing route links", "container": true },
+    { "id": "brand", "kind": "text", "box": { "x": 0.018, "y": 0.022, "w": 0.09, "h": 0.041 }, "note": "Splitlie wordmark in dark ink", "parentId": "sidebar-shell" },
+    { "id": "workspace-switcher", "kind": "control", "box": { "x": 0.014, "y": 0.137, "w": 0.158, "h": 0.052 }, "note": "current personal space switcher control", "parentId": "sidebar-shell" },
+    { "id": "sidebar-nav", "kind": "control", "box": { "x": 0.013, "y": 0.2, "w": 0.16, "h": 0.31 }, "note": "stack of existing primary route links with one mint active row", "parentId": "sidebar-shell" },
+    { "id": "sidebar-account", "kind": "control", "box": { "x": 0.014, "y": 0.89, "w": 0.158, "h": 0.07 }, "note": "signed-in user identity and settings access", "parentId": "sidebar-shell" },
+
+    { "id": "topbar", "kind": "chrome", "box": { "x": 0.184, "y": 0, "w": 0.816, "h": 0.082 }, "note": "compact top utility bar spanning the financial workspace", "container": true },
+    { "id": "space-title", "kind": "text", "box": { "x": 0.2, "y": 0.02, "w": 0.26, "h": 0.04 }, "note": "active space name in compact bold type", "parentId": "topbar" },
+    { "id": "month-control", "kind": "control", "box": { "x": 0.645, "y": 0.02, "w": 0.14, "h": 0.045 }, "note": "month selector with calendar icon", "parentId": "topbar" },
+    { "id": "add-transaction", "kind": "control", "box": { "x": 0.795, "y": 0.018, "w": 0.12, "h": 0.049 }, "note": "green primary add transaction button", "parentId": "topbar" },
+
+    { "id": "page-heading", "kind": "text", "box": { "x": 0.2, "y": 0.088, "w": 0.18, "h": 0.047 }, "note": "Overview page heading in dark ink" },
+    { "id": "page-summary", "kind": "text", "box": { "x": 0.2, "y": 0.143, "w": 0.28, "h": 0.024 }, "note": "short monthly overview summary text" },
+
+    { "id": "metric-band", "kind": "chrome", "box": { "x": 0.2, "y": 0.18, "w": 0.785, "h": 0.205 }, "note": "asymmetrical first band of four financial modules", "container": true },
+    { "id": "safe-module", "kind": "chrome", "box": { "x": 0.2, "y": 0.18, "w": 0.343, "h": 0.205 }, "note": "wide white Safe to Spend module with budget context", "container": true, "parentId": "metric-band" },
+    { "id": "safe-label", "kind": "text", "box": { "x": 0.242, "y": 0.205, "w": 0.12, "h": 0.027 }, "note": "Safe to Spend module title", "parentId": "safe-module" },
+    { "id": "safe-value", "kind": "text", "box": { "x": 0.212, "y": 0.247, "w": 0.15, "h": 0.052 }, "note": "current safe to spend value in tabular numerals", "parentId": "safe-module" },
+    { "id": "budget-label-value", "kind": "text", "box": { "x": 0.455, "y": 0.246, "w": 0.075, "h": 0.047 }, "note": "monthly budget label and value", "parentId": "safe-module" },
+    { "id": "budget-progress", "kind": "control", "box": { "x": 0.212, "y": 0.314, "w": 0.318, "h": 0.07 }, "note": "compact green monthly budget utilization bar and explanatory values", "parentId": "safe-module" },
+    { "id": "spent-module", "kind": "chrome", "box": { "x": 0.551, "y": 0.18, "w": 0.141, "h": 0.205 }, "note": "compact spent this month module", "container": true, "parentId": "metric-band" },
+    { "id": "spent-label", "kind": "text", "box": { "x": 0.594, "y": 0.207, "w": 0.083, "h": 0.024 }, "note": "spent this month title", "parentId": "spent-module" },
+    { "id": "spent-value", "kind": "text", "box": { "x": 0.563, "y": 0.258, "w": 0.105, "h": 0.043 }, "note": "month spending value", "parentId": "spent-module" },
+    { "id": "income-module", "kind": "chrome", "box": { "x": 0.7, "y": 0.18, "w": 0.141, "h": 0.205 }, "note": "compact income module", "container": true, "parentId": "metric-band" },
+    { "id": "income-label", "kind": "text", "box": { "x": 0.743, "y": 0.207, "w": 0.067, "h": 0.024 }, "note": "income title", "parentId": "income-module" },
+    { "id": "income-value", "kind": "text", "box": { "x": 0.712, "y": 0.258, "w": 0.11, "h": 0.043 }, "note": "month income value", "parentId": "income-module" },
+    { "id": "net-module", "kind": "chrome", "box": { "x": 0.849, "y": 0.18, "w": 0.136, "h": 0.205 }, "note": "compact net module", "container": true, "parentId": "metric-band" },
+    { "id": "net-label", "kind": "text", "box": { "x": 0.892, "y": 0.207, "w": 0.05, "h": 0.024 }, "note": "net title", "parentId": "net-module" },
+    { "id": "net-value", "kind": "text", "box": { "x": 0.859, "y": 0.258, "w": 0.105, "h": 0.043 }, "note": "month net value", "parentId": "net-module" },
+
+    { "id": "signals-module", "kind": "chrome", "box": { "x": 0.2, "y": 0.4, "w": 0.785, "h": 0.17 }, "note": "full-width Money signals module divided into three insight columns", "container": true },
+    { "id": "signals-heading", "kind": "text", "box": { "x": 0.24, "y": 0.421, "w": 0.16, "h": 0.027 }, "note": "Money signals heading and insight count", "parentId": "signals-module" },
+    { "id": "signal-one", "kind": "text", "box": { "x": 0.255, "y": 0.48, "w": 0.19, "h": 0.06 }, "note": "first real spending insight and explanation", "parentId": "signals-module" },
+    { "id": "signal-two", "kind": "text", "box": { "x": 0.51, "y": 0.48, "w": 0.19, "h": 0.06 }, "note": "second real spending insight and explanation", "parentId": "signals-module" },
+    { "id": "signal-three", "kind": "text", "box": { "x": 0.765, "y": 0.48, "w": 0.19, "h": 0.06 }, "note": "third real spending insight and explanation", "parentId": "signals-module" },
+
+    { "id": "transactions-module", "kind": "chrome", "box": { "x": 0.2, "y": 0.585, "w": 0.415, "h": 0.4 }, "note": "recent transaction ledger module with header and rows", "container": true },
+    { "id": "transactions-heading", "kind": "text", "box": { "x": 0.242, "y": 0.607, "w": 0.19, "h": 0.027 }, "note": "Recent transactions heading", "parentId": "transactions-module" },
+    { "id": "transactions-table", "kind": "control", "box": { "x": 0.212, "y": 0.645, "w": 0.39, "h": 0.33 }, "note": "dense table of real recent transaction rows and columns", "parentId": "transactions-module" },
+
+    { "id": "bills-module", "kind": "chrome", "box": { "x": 0.623, "y": 0.585, "w": 0.362, "h": 0.4 }, "note": "upcoming bills module with header and due-status rows", "container": true },
+    { "id": "bills-heading", "kind": "text", "box": { "x": 0.665, "y": 0.607, "w": 0.18, "h": 0.027 }, "note": "Upcoming bills heading", "parentId": "bills-module" },
+    { "id": "bills-table", "kind": "control", "box": { "x": 0.635, "y": 0.645, "w": 0.337, "h": 0.33 }, "note": "dense list of existing recurring bills and status labels", "parentId": "bills-module" }
+  ]
+}
