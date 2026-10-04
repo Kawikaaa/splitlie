@@ -1,37 +1,55 @@
-import { getAccountingAmount } from '../../services/currency/currencyService.js'
+import { normalizeFinancialTransactions, roundMoney } from '../financial/transactionSemantics.js'
+import { calculateSpendingPace } from '../financial/spendingPace.js'
 import { getLocalDateKey, getLocalMonthKey } from '../../utils/dateKeys.js'
-
-function roundMoney(value) {
-  return Math.round((Number(value) + Number.EPSILON) * 100) / 100
-}
 
 export function hasMonthlyTotalBudget(budgets = []) {
   return budgets.some(item => item?.category === '__TOTAL__')
 }
 
-export function calculateSafeToSpend({ transactions = [], monthlyBudget = 0, fixedExpenses = [], fixedExpenseOccurrences = [], currentDate = new Date(), currency = 'USD' }) {
+export function calculateSafeToSpend({ transactions = [], monthlyBudget = 0, hasPlan = true, fixedExpenses = [], fixedExpenseOccurrences = [], currentDate = new Date(), periodMonth, currency = 'USD', goalReserves = [], safetyBuffer = { enabled: false, amount: 0 } }) {
   const now = new Date(currentDate)
-  const month = getLocalMonthKey(now)
+  const month = periodMonth || getLocalMonthKey(now)
+  const [year, monthNumber] = month.split('-').map(Number)
   const monthStart = `${month}-01`
-  const monthEnd = getLocalDateKey(new Date(now.getFullYear(), now.getMonth() + 1, 0))
-  const spentAmount = transactions
-    .filter((item) => item.type === 'expense' && (item.payment_status || 'paid') === 'paid')
-    .filter((item) => item.transaction_date?.slice(0, 7) === month)
-    .reduce((sum, item) => {
-      const amount = getAccountingAmount(item)
-      return amount === null ? sum : sum + amount
-    }, 0)
-  const resolvedFixedIds = new Set(fixedExpenseOccurrences.map((item) => item.fixed_expense_id))
+  const monthEnd = `${month}-${String(new Date(year, monthNumber, 0).getDate()).padStart(2, '0')}`
+  const { rows, issues } = normalizeFinancialTransactions(transactions, { currency })
+  const monthRows = rows.filter(row => row.transaction_date.slice(0, 7) === month)
+  const spentAmount = monthRows.filter(row => row.transaction_date <= getLocalDateKey(now)).reduce((sum, row) => sum + row.spendingAmount, 0)
+  const resolved = fixedExpenseOccurrences.filter(row => (!row.occurrence_month || row.occurrence_month.slice(0, 7) === month) && ['paid', 'skipped'].includes(row.status))
+  const resolvedFixedIds = new Set(resolved.map(row => row.fixed_expense_id))
+  const linkedFixedIds = new Set(monthRows.filter(row => row.spendingAmount > 0 || row.obligationAmount > 0).map(row => row.recurring_expense_id || row.fixed_expense_id).filter(Boolean))
+  const seenFixedIds = new Set()
   const recurringItems = fixedExpenses
-    .filter((item) => !resolvedFixedIds.has(item.id))
+    .filter((item) => {
+      if (seenFixedIds.has(item.id)) return false
+      seenFixedIds.add(item.id)
+      return !resolvedFixedIds.has(item.id) && !linkedFixedIds.has(item.id)
+    })
     .filter((item) => item.active !== false && (item.currency || currency) === currency)
+    .filter((item) => Number.isFinite(Number(item.amount)) && Number(item.amount) >= 0)
     .filter((item) => (!item.starts_on || item.starts_on <= monthEnd) && (!item.ends_on || item.ends_on >= monthStart))
     .map((item) => ({ id: item.id, name: item.name, category: item.category || 'Other', amount: Number(item.amount || 0), dueDay: item.due_day }))
-  const budgetAmount = roundMoney(monthlyBudget)
+  const resolvedTransactionIds = new Set(resolved.map(row => row.transaction_id).filter(Boolean))
+  const upcomingTransactions = monthRows.filter(row => row.obligationAmount > 0 && !resolvedTransactionIds.has(row.id)
+    && !resolvedFixedIds.has(row.recurring_expense_id || row.fixed_expense_id))
+  const budgetAmount = roundMoney(Math.max(0, Number(monthlyBudget) || 0))
   const fixedAmount = roundMoney(recurringItems.reduce((sum, item) => sum + item.amount, 0))
   const spent = roundMoney(spentAmount)
-  const usedAmount = roundMoney(fixedAmount + spent)
+  const upcomingAmount = roundMoney(upcomingTransactions.reduce((sum, row) => sum + row.obligationAmount, 0))
+  const obligationAmount = roundMoney(fixedAmount + upcomingAmount)
+  const goalReserveAmount = roundMoney(goalReserves.filter(item => item.include_in_safe_to_spend === true && item.currency === currency && (!item.month || item.month === month)).reduce((sum, item) => sum + Math.max(0, Number(item.amount) || 0), 0))
+  const bufferAmount = safetyBuffer.enabled === true ? roundMoney(Math.max(0, Number(safetyBuffer.amount) || 0)) : 0
+  const usedAmount = roundMoney(obligationAmount + spent + goalReserveAmount + bufferAmount)
   const safeToSpend = roundMoney(budgetAmount - usedAmount)
   const usedPercent = budgetAmount > 0 ? Math.max(0, Math.round((usedAmount / budgetAmount) * 100)) : 0
-  return { budgetAmount, fixedAmount, spentAmount: spent, usedAmount, usedPercent, safeToSpend, fixedExpenses: recurringItems }
+  const breakdown = [
+    { key: 'spendingPlan', amount: budgetAmount },
+    { key: 'incurredSpending', amount: spent ? -spent : 0 },
+    { key: 'upcomingObligations', amount: obligationAmount ? -obligationAmount : 0 },
+    ...(goalReserveAmount ? [{ key: 'goalReserve', amount: -goalReserveAmount }] : []),
+    ...(bufferAmount ? [{ key: 'safetyBuffer', amount: -bufferAmount }] : []),
+  ]
+  return { month, currency, hasPlan, budgetAmount, fixedAmount, upcomingAmount, obligationAmount, goalReserveAmount, bufferAmount,
+    spentAmount: spent, usedAmount, usedPercent, safeToSpend, fixedExpenses: recurringItems, upcomingTransactions, breakdown, issues,
+    pace: calculateSpendingPace({ month, now, planAmount: budgetAmount, hasPlan, spentAmount: spent, safeToSpend }) }
 }

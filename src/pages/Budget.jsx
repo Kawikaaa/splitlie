@@ -4,6 +4,7 @@ import BudgetMonthPicker from '../components/BudgetMonthPicker'
 import { Navigate } from 'react-router-dom'
 import BudgetPanel from '../features/safeToSpend/BudgetPanel'
 import SafeToSpendCard from '../features/safeToSpend/SafeToSpendCard'
+import SpendingPaceCard from '../features/financial/SpendingPaceCard'
 import { calculateSafeToSpend } from '../features/safeToSpend/calculateSafeToSpend'
 import { createFixedExpense, deleteFixedExpense, fetchFixedExpenses, fetchFixedExpenseOccurrences, fetchMonthlyBudgets, fetchTransactions, updateFixedExpense, upsertMonthlyBudget } from '../data/ledgerApi'
 import { useLanguage } from '../i18n/LanguageContext'
@@ -78,7 +79,7 @@ export default function Budget({ activeSpace, user, refreshKey }) {
   )
   const result = useMemo(() => calculateSafeToSpend({
     transactions, monthlyBudget: budget?.amount || 0, fixedExpenses, fixedExpenseOccurrences: fixedOccurrences, currency,
-    currentDate: new Date(`${selectedMonth}-15T12:00:00`),
+    periodMonth: selectedMonth, hasPlan: Boolean(budget),
   }), [transactions, budget?.amount, fixedExpenses, fixedOccurrences, currency, selectedMonth])
 
   if (activeSpace.type !== 'personal') return <Navigate to="/" replace />
@@ -120,7 +121,8 @@ export default function Budget({ activeSpace, user, refreshKey }) {
       </header>
       {loading || loadedScope !== scope ? <section className="panel empty-state" role="status">{t('loadingYourMoney')}</section>
         : loadFailed ? <section className="panel empty-state"><p role="alert">{actionError}</p><button className="secondary" onClick={loadAll}>{t('retry')}</button></section>
-        : <><SafeToSpendCard result={result} currency={currency} />
+        : <>{budget && <SafeToSpendCard result={result} currency={currency} />}
+          <SpendingPaceCard result={result} currency={currency} />
           <BudgetPanel key={scope} budget={budget} fixedExpenses={visibleFixedExpenses} currency={currency} result={result} selectedMonth={selectedMonth} error={actionError} onSaveBudget={saveBudget} onAddFixed={addFixedExpense} onEditFixed={editFixedExpense} onDeleteFixed={removeFixedExpense} /></>}
     </div>
   )

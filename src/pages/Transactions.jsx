@@ -21,6 +21,7 @@ import MenuSurface from '../components/MenuSurface'
 import { getCategoryTranslationKey } from '../components/CategorySelect'
 import { formatCurrency } from '../services/currency/currencyFormatter'
 import { getAccountingAmount } from '../services/currency/currencyService'
+import { summarizeFinancialTransactions } from '../features/financial/transactionSemantics'
 import TransactionAmount from '../features/transactions/TransactionAmount'
 
 import {
@@ -404,6 +405,7 @@ export default function Transactions({
   const transactionCount = filteredTransactions.length
 
   const totalExpenses = useMemo(() => {
+    if (!isShared) return summarizeFinancialTransactions(filteredTransactions, { currency: activeSpace.currency }).expenses
     return filteredTransactions.reduce(
       (total, transaction) => {
         if (transaction.type !== 'expense') {
@@ -415,9 +417,10 @@ export default function Transactions({
       },
       0
     )
-  }, [filteredTransactions])
+  }, [filteredTransactions, isShared, activeSpace.currency])
 
   const totalIncome = useMemo(() => {
+    if (!isShared) return summarizeFinancialTransactions(filteredTransactions, { currency: activeSpace.currency }).income
     return filteredTransactions.reduce(
       (total, transaction) => {
         if (transaction.type !== 'income') return total
@@ -426,7 +429,7 @@ export default function Transactions({
       },
       0
     )
-  }, [filteredTransactions])
+  }, [filteredTransactions, isShared, activeSpace.currency])
 
   return (
     <div className="page transactions-page">

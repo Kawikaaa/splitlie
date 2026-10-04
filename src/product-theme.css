@@ -802,9 +802,9 @@ select:focus-visible,
 
 .app-shell .fin-signals-card { display: flex; flex-direction: column; }
 .app-shell .fin-signals-card .eyebrow { color: var(--sl-accent); }
-.app-shell .fin-signal-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; flex: 1; }
+.app-shell .fin-signal-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; flex: 1; }
 .app-shell .fin-signal,
-.app-shell .fin-signal-empty { min-height: 78px; }
+.app-shell .fin-signal-empty { min-height: 62px; }
 .app-shell button.fin-signal { width: 100%; display: grid; grid-template-columns: 20px minmax(0, 1fr) 18px; align-items: center; gap: 10px; border: 0; text-align: left; cursor: pointer; }
 .app-shell button.fin-signal:hover { background: #313831; }
 .app-shell button.fin-signal > span { min-width: 0; display: grid; gap: 4px; }
@@ -813,7 +813,7 @@ select:focus-visible,
 .app-shell .fin-signal-empty { margin-top: 16px; display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: center; gap: 10px; }
 .app-shell .fin-signal-empty > div { display: grid; gap: 4px; }
 
-.app-shell .awareness-checkin-card { height: 280px; min-height: 280px; display: flex; flex-direction: column; overflow: hidden; padding: 22px; background: var(--sl-surface); }
+.app-shell .awareness-checkin-card { height: 100%; min-height: 280px; display: flex; flex-direction: column; overflow: visible; padding: 22px; background: var(--sl-surface); }
 .app-shell .awareness-checkin-card > .checkin-heading { width: 100%; display: flex; grid-template-columns: none; align-items: center; gap: 12px; }
 .app-shell .checkin-heading > div { min-width: 0; }
 .app-shell .checkin-heading h2 { max-width: 28ch; margin: 4px 0 0; font-size: clamp(18px, 1.7vw, 20px); line-height: 1.22; letter-spacing: -.025em; text-wrap: balance; }
@@ -2163,3 +2163,21 @@ input::placeholder, textarea::placeholder { color: var(--sl-muted); opacity: 1; 
     transition-duration: 0.01ms !important;
   }
 }
+/* Spending-plan metrics consume the financial engine; no independent UI math. */
+.app-shell .overview-page { position: relative; }
+.app-shell .overview-transition-skeleton {
+  display: none;
+  position: absolute;
+  inset-inline: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.spending-pace-panel { margin: 24px 0; }
+.spending-pace-panel .pace-status { margin: 0 0 24px; font-weight: 500; }
+.pace-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin: 0; }
+.pace-metrics > div { border-top: 1px solid var(--border, #dedfd9); padding-top: 16px; min-width: 0; }
+.pace-metrics dt { color: #62685e; font-size: 14px; line-height: 1.5; }
+.pace-metrics dd { margin: 8px 0 0; font-size: clamp(20px, 2vw, 28px); font-weight: 650; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.spending-pace-panel > .muted { margin: 24px 0 0; }
+@media (max-width: 720px) { .pace-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; } }

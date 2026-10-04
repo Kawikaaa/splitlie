@@ -678,7 +678,7 @@ export default function TransactionModal({
     setQuickParsing(false)
 
     if (!parsed.ok) {
-      setQuickStatus(parsed.reason === 'amount' ? 'amount' : 'empty')
+      setQuickStatus(['amount', 'semanticTypeUnsupported'].includes(parsed.reason) ? parsed.reason : 'empty')
       return false
     }
 
@@ -882,9 +882,8 @@ export default function TransactionModal({
       saveError = error
     }
 
-    setSaving(false)
-
     if (saveError) {
+      setSaving(false)
       setError(
         saveError.message
       )
@@ -896,6 +895,7 @@ export default function TransactionModal({
       await onSaved()
     }
 
+    setSaving(false)
     onClose()
   }
 
@@ -1193,7 +1193,7 @@ export default function TransactionModal({
               </div>
               {quickStatus && (
                 <p aria-live="polite" className={`quick-add-status ${quickStatus === 'ready' ? 'success' : ['listening', 'parsing', 'review'].includes(quickStatus) ? 'listening' : 'error'}`}>
-                  {t({ ready: 'quickAddReady', review: 'quickAddReview', listening: 'voiceListening', parsing: 'analyzingTransaction', unsupported: 'voiceUnsupported', voiceError: 'voiceError', amount: 'quickAddAmountMissing', empty: 'quickAddEmpty' }[quickStatus])}
+                  {t({ ready: 'quickAddReady', review: 'quickAddReview', listening: 'voiceListening', parsing: 'analyzingTransaction', unsupported: 'voiceUnsupported', voiceError: 'voiceError', amount: 'quickAddAmountMissing', empty: 'quickAddEmpty', semanticTypeUnsupported: 'semanticTypeUnsupported' }[quickStatus])}
                 </p>
               )}
             </section>

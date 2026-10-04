@@ -147,6 +147,20 @@ export async function fetchFixedExpenseOccurrences(spaceId, userId, month) {
     .eq('space_id', spaceId).eq('user_id', userId).eq('occurrence_month', `${month}-01`)
 }
 
+// Uses the same authenticated reads and ownership filters as existing Personal Space pages.
+// An incomplete read cannot be a before/after accounting baseline.
+export async function fetchPersonalFinancialState({ spaceId, userId, month }) {
+  try {
+    const results = await Promise.all([
+      fetchTransactions(spaceId), fetchMonthlyBudgets(spaceId, userId, month),
+      fetchFixedExpenses(spaceId, userId), fetchFixedExpenseOccurrences(spaceId, userId, month),
+    ])
+    if (results.some(result => result.error)) return null
+    const [transactions, budgets, fixedExpenses, fixedExpenseOccurrences] = results.map(result => result.data || [])
+    return { transactions, budgets, fixedExpenses, fixedExpenseOccurrences }
+  } catch { return null }
+}
+
 export async function resolveFixedExpenseOccurrence(fixedExpenseId, month, action) {
   return supabase.rpc('resolve_fixed_expense_occurrence', {
     p_fixed_expense_id: fixedExpenseId,

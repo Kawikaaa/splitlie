@@ -18,7 +18,7 @@ test('distinguishes a missing budget from an explicitly zero budget', () => {
   assert.equal(hasMonthlyTotalBudget([{ category: '__TOTAL__', amount: 0 }]), true)
 })
 
-test('calculates budget minus paid spending and unresolved active fixed expenses', () => {
+test('calculates plan minus incurred spending and all unpaid obligations', () => {
   const result = calculateSafeToSpend({
     currentDate: new Date('2026-09-15T12:00:00'),
     monthlyBudget: 1000,
@@ -38,7 +38,8 @@ test('calculates budget minus paid spending and unresolved active fixed expenses
 
   assert.equal(result.spentAmount, 120)
   assert.equal(result.fixedAmount, 400)
-  assert.equal(result.safeToSpend, 480)
+  assert.equal(result.upcomingAmount, 90)
+  assert.equal(result.safeToSpend, 390)
 })
 
 test('respects the selected local month for historical budget views', () => {
