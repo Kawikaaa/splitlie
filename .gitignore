@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.env.local
+.env.*
+!.env.example
+*.log
+.codex-reference/
+.impeccable/build/
+.impeccable/live/
+.impeccable/mocks/
+.DS_Store
+.vercel-upload/
+splitly-demo-upload/
+splitly-vercel-source/
+splitly-vercel-source-*/

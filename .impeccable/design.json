@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-02T18:09:25.6634384Z",
+  "title": "Design System: Splitlie",
+  "extensions": {
+    "colorMeta": {
+      "lp-ground": { "role": "neutral", "displayName": "Landing White" },
+      "lp-ink": { "role": "neutral", "displayName": "Landing Ink" },
+      "lp-muted": { "role": "neutral", "displayName": "Landing Muted" },
+      "lp-rule": { "role": "neutral", "displayName": "Landing Rule" },
+      "lp-lime": { "role": "primary", "displayName": "Landing Lime" },
+      "lp-lime-hover": { "role": "primary", "displayName": "Landing Lime Hover" },
+      "lp-lime-active": { "role": "primary", "displayName": "Landing Lime Active" },
+      "lp-example": { "role": "neutral", "displayName": "Landing Example" },
+      "canvas": { "role": "neutral", "displayName": "Warm Canvas", "canonical": "#f7f7f3", "tonalRamp": ["oklch(15% 0.006 105)", "oklch(27% 0.006 105)", "oklch(39% 0.006 105)", "oklch(51% 0.006 105)", "oklch(63% 0.006 105)", "oklch(75% 0.006 105)", "oklch(87% 0.006 105)", "oklch(95% 0.006 105)"] },
+      "surface": { "role": "neutral", "displayName": "Paper Surface", "canonical": "#ffffff", "tonalRamp": ["oklch(15% 0.008 95)", "oklch(27% 0.008 95)", "oklch(39% 0.008 95)", "oklch(51% 0.008 95)", "oklch(63% 0.008 95)", "oklch(75% 0.008 95)", "oklch(87% 0.008 95)", "oklch(97% 0.008 95)"] },
+      "surface-subtle": { "role": "neutral", "displayName": "Subtle Paper", "canonical": "#f7f8f5", "tonalRamp": ["oklch(15% 0.006 105)", "oklch(27% 0.006 105)", "oklch(39% 0.006 105)", "oklch(51% 0.006 105)", "oklch(63% 0.006 105)", "oklch(75% 0.006 105)", "oklch(87% 0.006 105)", "oklch(96% 0.006 105)"] },
+      "surface-muted": { "role": "neutral", "displayName": "Quiet Surface", "canonical": "#eef0eb", "tonalRamp": ["oklch(15% 0.012 115)", "oklch(27% 0.012 115)", "oklch(39% 0.012 115)", "oklch(51% 0.012 115)", "oklch(63% 0.012 115)", "oklch(75% 0.012 115)", "oklch(87% 0.012 115)", "oklch(94% 0.012 115)"] },
+      "ink": { "role": "neutral", "displayName": "Ledger Ink", "canonical": "#151915", "tonalRamp": ["oklch(15% 0.012 145)", "oklch(27% 0.012 145)", "oklch(39% 0.012 145)", "oklch(51% 0.012 145)", "oklch(63% 0.012 145)", "oklch(75% 0.012 145)", "oklch(87% 0.012 145)", "oklch(95% 0.012 145)"] },
+      "ink-soft": { "role": "neutral", "displayName": "Soft Ink", "canonical": "#30352f", "tonalRamp": ["oklch(15% 0.016 140)", "oklch(27% 0.016 140)", "oklch(39% 0.016 140)", "oklch(51% 0.016 140)", "oklch(63% 0.016 140)", "oklch(75% 0.016 140)", "oklch(87% 0.016 140)", "oklch(95% 0.016 140)"] },
+      "muted": { "role": "neutral", "displayName": "Muted Copy", "canonical": "#70756e", "tonalRamp": ["oklch(15% 0.012 135)", "oklch(27% 0.012 135)", "oklch(39% 0.012 135)", "oklch(51% 0.012 135)", "oklch(63% 0.012 135)", "oklch(75% 0.012 135)", "oklch(87% 0.012 135)", "oklch(95% 0.012 135)"] },
+      "faint": { "role": "neutral", "displayName": "Faint Copy", "canonical": "#a0a69f", "tonalRamp": ["oklch(15% 0.010 140)", "oklch(27% 0.010 140)", "oklch(39% 0.010 140)", "oklch(51% 0.010 140)", "oklch(63% 0.010 140)", "oklch(75% 0.010 140)", "oklch(87% 0.010 140)", "oklch(95% 0.010 140)"] },
+      "line": { "role": "neutral", "displayName": "Quiet Rule", "canonical": "#e0e3dc", "tonalRamp": ["oklch(15% 0.010 110)", "oklch(27% 0.010 110)", "oklch(39% 0.010 110)", "oklch(51% 0.010 110)", "oklch(63% 0.010 110)", "oklch(75% 0.010 110)", "oklch(87% 0.010 110)", "oklch(91% 0.010 110)"] },
+      "line-strong": { "role": "neutral", "displayName": "Strong Rule", "canonical": "#cbd0c6", "tonalRamp": ["oklch(15% 0.014 115)", "oklch(27% 0.014 115)", "oklch(39% 0.014 115)", "oklch(51% 0.014 115)", "oklch(63% 0.014 115)", "oklch(75% 0.014 115)", "oklch(84% 0.014 115)", "oklch(95% 0.014 115)"] },
+      "accent": { "role": "primary", "displayName": "Signal Lime", "canonical": "#b8f26a", "tonalRamp": ["oklch(15% 0.17 125)", "oklch(27% 0.17 125)", "oklch(39% 0.17 125)", "oklch(51% 0.17 125)", "oklch(63% 0.17 125)", "oklch(75% 0.17 125)", "oklch(87% 0.17 125)", "oklch(95% 0.17 125)"] },
+      "accent-soft": { "role": "primary", "displayName": "Quiet Lime", "canonical": "#e8f7c9", "tonalRamp": ["oklch(15% 0.08 125)", "oklch(27% 0.08 125)", "oklch(39% 0.08 125)", "oklch(51% 0.08 125)", "oklch(63% 0.08 125)", "oklch(75% 0.08 125)", "oklch(87% 0.08 125)", "oklch(94% 0.08 125)"] },
+      "accent-ink": { "role": "primary", "displayName": "Lime Ink", "canonical": "#284018", "tonalRamp": ["oklch(15% 0.09 130)", "oklch(27% 0.09 130)", "oklch(39% 0.09 130)", "oklch(51% 0.09 130)", "oklch(63% 0.09 130)", "oklch(75% 0.09 130)", "oklch(87% 0.09 130)", "oklch(95% 0.09 130)"] },
+      "positive": { "role": "secondary", "displayName": "Positive Ledger Green", "canonical": "#23633b", "tonalRamp": ["oklch(15% 0.09 150)", "oklch(27% 0.09 150)", "oklch(39% 0.09 150)", "oklch(51% 0.09 150)", "oklch(63% 0.09 150)", "oklch(75% 0.09 150)", "oklch(87% 0.09 150)", "oklch(95% 0.09 150)"] },
+      "danger": { "role": "tertiary", "displayName": "Risk Brick", "canonical": "#b5473d", "tonalRamp": ["oklch(15% 0.11 25)", "oklch(27% 0.11 25)", "oklch(39% 0.11 25)", "oklch(51% 0.11 25)", "oklch(63% 0.11 25)", "oklch(75% 0.11 25)", "oklch(87% 0.11 25)", "oklch(95% 0.11 25)"] },
+      "danger-soft": { "role": "tertiary", "displayName": "Risk Wash", "canonical": "#f8e8e5", "tonalRamp": ["oklch(15% 0.03 25)", "oklch(27% 0.03 25)", "oklch(39% 0.03 25)", "oklch(51% 0.03 25)", "oklch(63% 0.03 25)", "oklch(75% 0.03 25)", "oklch(87% 0.03 25)", "oklch(94% 0.03 25)"] },
+      "dark": { "role": "neutral", "displayName": "Structure Charcoal", "canonical": "#151915", "tonalRamp": ["oklch(15% 0.012 145)", "oklch(27% 0.012 145)", "oklch(39% 0.012 145)", "oklch(51% 0.012 145)", "oklch(63% 0.012 145)", "oklch(75% 0.012 145)", "oklch(87% 0.012 145)", "oklch(95% 0.012 145)"] },
+      "dark-soft": { "role": "neutral", "displayName": "Soft Charcoal", "canonical": "#272d27", "tonalRamp": ["oklch(15% 0.015 145)", "oklch(27% 0.015 145)", "oklch(39% 0.015 145)", "oklch(51% 0.015 145)", "oklch(63% 0.015 145)", "oklch(75% 0.015 145)", "oklch(87% 0.015 145)", "oklch(95% 0.015 145)"] }
+    },
+    "typographyMeta": {
+      "lp-display": { "displayName": "Landing Swiss Display", "purpose": "Oversized punctuation-free English hero on /welcome only." },
+      "lp-display-zh": { "displayName": "Landing Chinese Display", "purpose": "Chinese hero with a natural phrase break on /welcome only." },
+      "lp-display-mobile": { "displayName": "Landing Mobile Display", "purpose": "Both landing locales at 760px and below; preserve locale-specific tracking." },
+      "lp-body": { "displayName": "Landing Reading Copy", "purpose": "Hero introduction and open feature-row copy on /welcome only." },
+      "lp-button": { "displayName": "Landing Action Label", "purpose": "Standard registration action; hero and mobile variants have scoped overrides." },
+      "display": { "displayName": "Editorial Display", "purpose": "Marketing statements and leading financial values." },
+      "body": { "displayName": "Operational Body", "purpose": "Controls, explanations, transactions, and bilingual reading." },
+      "label": { "displayName": "Technical Label", "purpose": "Eyebrows, field labels, section labels, and compact metadata." }
+    },
+    "shadows": [
+      { "name": "ledger-edge", "value": "0 1px 2px rgba(25, 31, 23, 0.04)", "purpose": "Nearly flat separation for standard cards and panels." },
+      { "name": "raised-paper", "value": "0 16px 42px rgba(20, 25, 20, 0.10)", "purpose": "Auth surfaces, menus, product windows, and floating content." },
+      { "name": "modal-lift", "value": "0 24px 60px rgba(16, 20, 16, 0.20)", "purpose": "Dialogs over a blurred modal backdrop." }
+    ],
+    "motion": [
+      { "name": "lp-control-state", "value": "160ms ease", "purpose": "Landing button background transition; disabled for reduced motion." },
+      { "name": "lp-ledger-settle", "value": "700ms cubic-bezier(.16, 1, .3, 1)", "purpose": "Landing illustrative ledger settles from translateY(16px) to zero; disabled for reduced motion." },
+      { "name": "control-state", "value": "150ms ease", "purpose": "Color and border transitions on controls." },
+      { "name": "press", "value": "120ms ease", "purpose": "Compact 0.98 scale response on actionable controls." },
+      { "name": "dialog-enter", "value": "180ms ease-out", "purpose": "Small upward fade for modal entry; disabled by reduced-motion preference." }
+    ],
+    "breakpoints": [
+      { "name": "lp-compact-desktop", "value": "1000px" },
+      { "name": "lp-mobile", "value": "760px" },
+      { "name": "auth-collapse", "value": "900px" },
+      { "name": "analytics-collapse", "value": "980px" },
+      { "name": "mobile-shell", "value": "760px" },
+      { "name": "compact-mobile", "value": "520px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Landing Registration Button",
+      "kind": "button",
+      "refersTo": "lp-button",
+      "description": "Flat lime registration action for /welcome only; tokens are scoped to the landing container, so this preview resolves literal values.",
+      "html": "<button class=\"ds-lp-button\">Create your account<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M4 12h16m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-lp-button { display: inline-flex; align-items: center; justify-content: center; gap: 24px; min-height: 56px; padding: 16px 28px; border: 0; border-radius: 6px; background: #b8f26a; color: #151915; font-family: 'Geist Variable', 'Microsoft YaHei UI', system-ui, sans-serif; font-size: 16px; font-weight: 650; cursor: pointer; transition: background-color 160ms ease; } .ds-lp-button:hover { background: #a6e357; } .ds-lp-button:active { background: #99d54c; } .ds-lp-button:focus-visible { outline: 2px solid #151915; outline-offset: 5px; } @media (prefers-reduced-motion: reduce) { .ds-lp-button { transition: none; } }"
+    },
+    {
+      "name": "Landing Illustrative Ledger",
+      "kind": "custom",
+      "refersTo": "lp-ledger",
+      "description": "Flat dark balance panel and ruled white rows for the public landing illustration; explicitly illustrative, not live account data.",
+      "html": "<figure class=\"ds-lp-preview\"><div class=\"ds-lp-ledger\"><div class=\"ds-lp-available\"><span>Safe to Spend</span><strong>$631.93</strong><p>Monthly budget $1,000.00</p></div><div class=\"ds-lp-row\"><span>Groceries</span><strong>−$84.20</strong></div><div class=\"ds-lp-row\"><span>Utilities</span><strong>−$126.00</strong></div></div><figcaption>Illustrative preview</figcaption></figure>",
+      "css": ".ds-lp-preview { max-width: 480px; margin: 0; font-family: 'Geist Variable', 'Microsoft YaHei UI', system-ui, sans-serif; color: #151915; } .ds-lp-ledger { overflow: hidden; border: 1px solid #d9ddd6; border-radius: 10px; background: #fff; } .ds-lp-available { padding: 28px; background: #151915; color: #fff; display: flex; flex-direction: column; align-items: flex-start; } .ds-lp-available > span { font-size: 20px; line-height: 1.4; } .ds-lp-available > strong { font-size: clamp(40px, 4vw, 60px); font-weight: 650; line-height: 1.15; letter-spacing: -.035em; font-variant-numeric: tabular-nums; } .ds-lp-available > p { margin: 12px 0 0; color: #bfc6be; font-size: 16px; } .ds-lp-row { min-height: 76px; margin: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #d9ddd6; font-size: 16px; } .ds-lp-row:last-child { border-bottom: 0; } .ds-lp-row strong { font-weight: 450; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-lp-preview figcaption { margin-top: 16px; color: #626860; font-size: 14px; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The default high-authority action using Splitlie charcoal.",
+      "html": "<button class=\"ds-btn-primary\">Add transaction</button>",
+      "css": ".ds-btn-primary { min-height: 44px; padding: 0 18px; border: 1px solid var(--sl-dark, #151915); border-radius: 11px; background: var(--sl-dark, #151915); color: #fff; font: 700 14px/1.4 var(--sl-font, \"Geist Variable\", sans-serif); cursor: pointer; transition: background-color 150ms ease, transform 120ms ease; } .ds-btn-primary:hover { background: var(--sl-dark-soft, #272d27); } .ds-btn-primary:active { transform: scale(.98); } .ds-btn-primary:focus-visible { outline: 2px solid #7da63e; outline-offset: 3px; }"
+    },
+    {
+      "name": "Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "A scarce brand action for adding or confirming money activity.",
+      "html": "<button class=\"ds-btn-accent\">Add transaction</button>",
+      "css": ".ds-btn-accent { min-height: 48px; padding: 0 18px; border: 1px solid var(--sl-accent, #b8f26a); border-radius: 11px; background: var(--sl-accent, #b8f26a); color: var(--sl-dark, #151915); font: 700 14px/1.4 var(--sl-font, \"Geist Variable\", sans-serif); cursor: pointer; transition: background-color 150ms ease, transform 120ms ease; } .ds-btn-accent:hover { background: #a8e557; border-color: #a8e557; } .ds-btn-accent:active { transform: scale(.98); } .ds-btn-accent:focus-visible { outline: 2px solid #7da63e; outline-offset: 3px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A warm paper action for secondary paths.",
+      "html": "<button class=\"ds-btn-secondary\">View details</button>",
+      "css": ".ds-btn-secondary { min-height: 44px; padding: 0 16px; border: 1px solid var(--sl-line-strong, #cbd0c6); border-radius: 11px; background: var(--sl-surface, #ffffff); color: var(--sl-ink, #151915); font: 700 14px/1.4 var(--sl-font, \"Geist Variable\", sans-serif); cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease; } .ds-btn-secondary:hover { background: var(--sl-surface-subtle, #f7f8f5); border-color: #aeb4aa; } .ds-btn-secondary:active { transform: scale(.98); } .ds-btn-secondary:focus-visible { outline: 2px solid #7da63e; outline-offset: 3px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A white operational field with a quiet rule and lime focus ring.",
+      "html": "<label class=\"ds-field\"><span>Email</span><input type=\"email\" placeholder=\"you@example.com\"></label>",
+      "css": ".ds-field { display: grid; gap: 5px; color: var(--sl-ink, #151915); font: 700 11px/1.3 var(--sl-font, \"Geist Variable\", sans-serif); letter-spacing: .035em; text-transform: uppercase; } .ds-field input { min-height: 44px; padding: 0 15px; border: 1px solid var(--sl-line, #e0e3dc); border-radius: 11px; background: #fff; color: var(--sl-ink, #151915); font: 400 15px/1.55 var(--sl-font, \"Geist Variable\", sans-serif); text-transform: none; } .ds-field input:hover { border-color: var(--sl-line-strong, #cbd0c6); } .ds-field input:focus-visible { outline: none; border-color: var(--sl-dark, #151915); box-shadow: 0 0 0 3px rgba(177, 244, 86, .36); }"
+    },
+    {
+      "name": "Navigation Item",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Dark-sidebar navigation with a lime active destination.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\" class=\"ds-nav-item\">Transactions</a><a href=\"#\" class=\"ds-nav-item active\">Overview</a></nav>",
+      "css": ".ds-nav { width: 240px; display: grid; gap: 4px; padding: 16px; background: var(--sl-dark, #151915); font-family: var(--sl-font, \"Geist Variable\", sans-serif); } .ds-nav-item { min-height: 46px; display: flex; align-items: center; padding: 0 14px; border-radius: 12px; color: #bfc6be; text-decoration: none; font-size: 14px; font-weight: 650; transition: background-color 150ms ease, color 150ms ease, transform 120ms ease; } .ds-nav-item:hover { background: #242a24; color: #fff; } .ds-nav-item:active { transform: scale(.985); } .ds-nav-item.active { background: var(--sl-accent, #b8f26a); color: var(--sl-dark, #151915); } .ds-nav-item:focus-visible { outline: 2px solid var(--sl-accent, #b8f26a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Surface Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The standard warm paper container for metrics and grouped content.",
+      "html": "<article class=\"ds-card\"><span>Income</span><strong>$4,920.00</strong><small>Recorded this month</small></article>",
+      "css": ".ds-card { min-height: 154px; display: flex; flex-direction: column; padding: 21px 24px 24px; border: 1px solid var(--sl-line, #e0e3dc); border-radius: 16px; background: var(--sl-surface, #ffffff); color: var(--sl-ink, #151915); box-shadow: 0 1px 2px rgba(25, 31, 23, .04); font-family: var(--sl-font, \"Geist Variable\", sans-serif); } .ds-card span { color: var(--sl-muted, #70756e); font-size: 14px; } .ds-card strong { margin-top: 14px; font-size: 36px; letter-spacing: -.045em; font-variant-numeric: tabular-nums; } .ds-card small { margin-top: auto; color: var(--sl-muted, #70756e); font-size: 13px; }"
+    },
+    {
+      "name": "Safe to Spend",
+      "kind": "custom",
+      "refersTo": "safe-to-spend",
+      "description": "The signature decision panel, led by a large white amount and a precise lime signal.",
+      "html": "<article class=\"ds-safe\"><span>Safe to Spend</span><strong>$6,842.00</strong><p>Available after spending and planned obligations.</p></article>",
+      "css": ".ds-safe { min-height: 196px; display: grid; align-content: center; padding: 26px 30px; border-radius: 16px; background: var(--sl-dark, #151915); color: #fff; font-family: var(--sl-font, \"Geist Variable\", sans-serif); } .ds-safe span { color: var(--sl-accent, #b8f26a); font-size: 18px; font-weight: 820; letter-spacing: .08em; text-transform: uppercase; } .ds-safe strong { display: block; margin-top: 10px; font-size: clamp(52px, 5.6vw, 68px); line-height: 1; letter-spacing: -.06em; font-variant-numeric: tabular-nums; } .ds-safe p { max-width: 620px; margin: 22px 0 0; color: #c3cac1; font-size: 13px; line-height: 1.45; }"
+    },
+    {
+      "name": "Segmented Tabs",
+      "kind": "chip",
+      "refersTo": "auth-tabs",
+      "description": "Compact two-way mode selection used by authentication.",
+      "html": "<div class=\"ds-tabs\"><button class=\"active\">Log in</button><button>Sign up</button></div>",
+      "css": ".ds-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--sl-line, #e0e3dc); border-radius: 13px; background: var(--sl-surface-muted, #eef0eb); } .ds-tabs button { min-height: 38px; border: 0; border-radius: 9px; background: transparent; color: var(--sl-muted, #70756e); font: 700 14px/1.4 var(--sl-font, \"Geist Variable\", sans-serif); cursor: pointer; } .ds-tabs button:hover { color: var(--sl-ink, #151915); } .ds-tabs button.active { background: #fff; color: var(--sl-ink, #151915); box-shadow: 0 1px 3px rgba(0,0,0,.08); } .ds-tabs button:focus-visible { outline: 2px solid #7da63e; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Money Desk",
+    "overview": "Splitlie feels like a well-organized personal money desk: warm rather than clinical, structured without becoming an accounting terminal, and calm enough for repeated monthly use. Warm paper surfaces hold most information; deep charcoal establishes authority in navigation, key actions, and the Safe to Spend decision area. A single electric-lime signal creates recognition and calls attention to actions or status without becoming a decorative wash.\n\nThe interface is intentionally decision-first. Large figures and short labels answer the current financial question before supporting cards explain spending, income, balances, categories, and shared activity. Public pages are more expressive through oversized display type and product mockups, while authenticated screens become denser and operational. Rounded containers and low, soft shadows keep the system approachable without turning it into a bubbly consumer template.",
+    "keyCharacteristics": [
+      "Warm off-white canvas with paper-white and quiet-gray surface layers.",
+      "Dark charcoal navigation, primary actions, and Safe to Spend structure.",
+      "Bright lime used as a precise signal, active navigation state, or action color.",
+      "Oversized, tightly tracked display typography paired with a neutral UI sans.",
+      "Moderately rounded 11px controls and 16px cards.",
+      "Thin borders, restrained shadows, and compact 16–24px internal rhythm.",
+      "Responsive transformation from a fixed sidebar to a top bar and bottom navigation."
+    ],
+    "rules": [
+      { "name": "The One Signal Rule", "body": "Lime should identify an action, active location, progress, or money state. If it does none of those jobs, remove it.", "section": "colors" },
+      { "name": "The Paper Before Shadow Rule", "body": "Separate ordinary content with surface tone and a one-pixel rule before adding elevation.", "section": "colors" },
+      { "name": "The Semantic Red Rule", "body": "Risk Brick appears only for destructive and error states, never as a general accent.", "section": "colors" },
+      { "name": "The Number First Rule", "body": "A decision-driving financial figure should be readable before its explanation; labels and helper copy stay visibly subordinate.", "section": "typography" },
+      { "name": "The Tight Display Rule", "body": "Large display text uses tight tracking and compact leading. Body text never inherits that compression.", "section": "typography" },
+      { "name": "The Bilingual Fit Rule", "body": "English may use uppercase technical labels; Chinese switches back to the UI family and reduced tracking to avoid artificial spacing.", "section": "typography" },
+      { "name": "The Decision Before Detail Rule", "body": "Page order must reveal the current financial state before history, explanation, or secondary actions.", "section": "layout" },
+      { "name": "The Operational Density Rule", "body": "Public pages may use generous editorial space; authenticated pages use compact, repeatable 16–24px rhythms.", "section": "layout" },
+      { "name": "The Flat Signature Rule", "body": "Dark signature panels and selected navigation rely on color contrast, not shadow.", "section": "elevation" },
+      { "name": "The Two-Level Rule", "body": "Do not invent intermediate shadows. Use the quiet card edge, the raised paper level, or the dedicated modal lift.", "section": "elevation" },
+      { "name": "The Two-Radius Rule", "body": "Start with 11px for controls and 16px for cards. A different radius needs a compact-tab, icon, avatar, or full-viewport reason.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do make the current financial position the first readable layer on authenticated pages.",
+      "Do use warm paper neutrals for long-lived surfaces and charcoal for authority.",
+      "Do reserve Signal Lime for active, actionable, progressive, or financial-state meaning.",
+      "Do keep ordinary cards within the 11px control / 16px card radius system.",
+      "Do use tabular numerals for important amounts and align comparable values consistently.",
+      "Do preserve visible keyboard focus, reduced-motion behavior, and bilingual text fit."
+    ],
+    "donts": [
+      "Don't turn every card lime, dark, or elevated; hierarchy depends on scarcity.",
+      "Don't use Risk Brick outside destructive actions and error feedback.",
+      "Don't add ornamental gradients, glass panels, glow effects, or decorative charts.",
+      "Don't use oversized marketing spacing inside dense authenticated workflows.",
+      "Don't let secondary cards compete with Safe to Spend or the no-budget spending state.",
+      "Don't invent product claims, recommendations, or financial capabilities that the working application does not have."
+    ]
+  }
+}

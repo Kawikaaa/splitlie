@@ -1,0 +1,35 @@
+.public-language-select { width: 136px; flex: 0 0 auto; }
+.public-language-select .app-select-trigger {
+  min-height: 44px;
+  padding-inline: 12px;
+  gap: 8px;
+  border-color: var(--sl-line-strong);
+  border-radius: var(--sl-radius-control);
+  background: transparent;
+  color: var(--sl-ink);
+  font-size: 14px;
+  font-weight: 550;
+}
+.public-language-select .app-select-trigger:hover { background: var(--sl-surface-muted); }
+.public-language-select .app-select-trigger:focus-visible { outline: 2px solid var(--sl-ink); outline-offset: 3px; }
+.public-language-select .app-select-menu {
+  min-width: 152px;
+  left: auto;
+  right: 0;
+  border-color: var(--sl-line);
+  border-radius: var(--sl-radius-control);
+  background: var(--sl-surface);
+  box-shadow: var(--sl-shadow-raised);
+}
+.public-language-select .app-select-option { min-height: 44px; color: var(--sl-ink); font-size: 14px; }
+.public-language-select .app-select-option.selected { background: var(--sl-accent-soft); }
+.public-language-select .app-select-option:hover { background: var(--sl-surface-muted); }
+.auth-shell .auth-card-top { flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
+.auth-shell .auth-card-top .auth-back { margin-left: auto; }
+@media (max-width: 760px) {
+  .public-language-select { width: 112px; }
+  .public-language-select .app-select-trigger { padding-inline: 8px; font-size: 13px; }
+}
+@media (max-width: 900px) {
+  .auth-shell .auth-card-top .auth-brand-mobile { flex: 1 0 calc(100% - 152px); }
+}
