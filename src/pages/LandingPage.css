@@ -35,7 +35,7 @@
 .lp-hero-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .lp-main-cta { min-height: 64px; font-size: 22px; padding: 16px 28px; }
 .lp-account-link { font-weight: 400; text-decoration: underline; text-underline-offset: 4px; }
-.lp-preview { min-width: 0; margin: 0 0 0 0; animation: lp-ledger-settle 700ms cubic-bezier(.16, 1, .3, 1) both; }
+.lp-preview { min-width: 0; margin: 0; }
 .lp-ledger { overflow: hidden; border-radius: var(--sl-radius-card); border: 1px solid var(--lp-rule); background: var(--sl-surface); }
 .lp-available { padding: 28px; background: var(--lp-ink); color: #fff; display: flex; flex-direction: column; align-items: flex-start; }
 .lp-available > svg { color: var(--lp-lime); margin-bottom: 20px; }

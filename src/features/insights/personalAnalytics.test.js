@@ -20,7 +20,8 @@ test('builds weekly totals and category breakdown from paid expenses', () => {
 test('requires two historical weeks before comparative signals', () => {
   const result = buildPersonalAnalytics({ now: new Date('2026-09-23T12:00:00'), transactions: [expense('2026-09-22', 80, 'Food'), expense('2026-09-15', 20, 'Food')] })
   assert.equal(result.baseline.ready, false)
-  assert.deepEqual(result.signals, [])
+  assert.ok(result.signals.every(signal => !['category_shift', 'positive_signal', 'frequency_change'].includes(signal.type)))
+  assert.ok(result.signals.some(signal => signal.type === 'large_purchase'))
 })
 
 test('generates structured deterministic category, frequency and purchase signals', () => {

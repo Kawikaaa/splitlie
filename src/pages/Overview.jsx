@@ -1,5 +1,7 @@
 import ModalSurface from '../components/ModalSurface'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import OverviewSkeleton from '../components/OverviewSkeleton'
+import { overviewLoadState } from '../utils/overviewLoadState'
 import { Link } from 'react-router-dom'
 import {
   Check,
@@ -16,6 +18,8 @@ import { getLanguageLocale, useLanguage } from '../i18n/LanguageContext'
 import CategoryIcon from '../components/CategoryIcon'
 import { getCategoryTranslationKey } from '../components/CategorySelect'
 import SafeToSpendCard from '../features/safeToSpend/SafeToSpendCard'
+import SpendingPaceCard from '../features/financial/SpendingPaceCard'
+import { summarizeFinancialTransactions } from '../features/financial/transactionSemantics'
 import { calculateSafeToSpend, hasMonthlyTotalBudget } from '../features/safeToSpend/calculateSafeToSpend'
 import { formatCurrency } from '../services/currency/currencyFormatter'
 import { getAccountingAmount } from '../services/currency/currencyService'
@@ -23,10 +27,15 @@ import TransactionAmount from '../features/transactions/TransactionAmount'
 import CurrencyOverviewCard from '../features/currency/CurrencyOverviewCard'
 import UpcomingBillsCard, { getUpcomingBills } from '../features/safeToSpend/UpcomingBillsCard'
 import { buildPersonalAnalytics } from '../features/insights/personalAnalytics'
+import { assessFinancialData } from '../features/financial/dataQuality'
+import { buildSignalEngine } from '../features/insights/signalEngine'
+import FinancialDataNotice from '../features/financial/FinancialDataNotice'
 import { MoneySignalsPanel, ReflectionPanel, SpendingBreakdownCard, WeeklyRecapCard } from '../features/insights/PersonalInsights'
 import useAnimatedNumber from '../hooks/useAnimatedNumber'
+import useOverviewReveal from '../hooks/useOverviewReveal'
+import useWeeklyCheckins from '../features/insights/useWeeklyCheckins'
 import AvatarImage from '../components/AvatarImage'
-import { getLocalMonthKey } from '../utils/dateKeys'
+import { getLocalDateKey, getLocalMonthKey } from '../utils/dateKeys'
 import {
   createSpaceInvitation,
   fetchSettlements,
@@ -36,7 +45,7 @@ import {
   fetchMonthlyBudgets,
   fetchFixedExpenses,
   fetchFixedExpenseOccurrences,
-  resolveFixedExpenseOccurrence,
+  resolveFixedExpenseOccurrenceV2,
 } from '../data/ledgerApi'
 
 function money(value, currency = 'USD') {
@@ -148,6 +157,12 @@ export default function Overview({
   const [fixedActionError, setFixedActionError] = useState('')
   const [loading, setLoading] = useState(true)
   const [personalOverviewReady, setPersonalOverviewReady] = useState(false)
+  const [financialLoadFailed, setFinancialLoadFailed] = useState(false)
+  const [loadedScope, setLoadedScope] = useState('')
+  const [overviewLoadError, setOverviewLoadError] = useState(false)
+  const [retryNonce, setRetryNonce] = useState(0)
+  const loadEpoch = useRef(0)
+  const overviewScope = `${activeSpace.id}:${user.id}:${activeSpace.currency}:${refreshKey}:${retryNonce}`
 
   /*
     allMembers:
@@ -203,6 +218,7 @@ export default function Overview({
 
   const isShared =
     activeSpace?.type === 'shared'
+  const checkins = useWeeklyCheckins(user?.id, isShared ? null : activeSpace?.id)
 
   const userDisplayName =
     user?.user_metadata?.display_name ||
@@ -229,79 +245,87 @@ export default function Overview({
   useEffect(() => {
     if (!activeSpace?.id) return
     let cancelled = false
-
-    loadTransactions()
-
-    if (!isShared) {
-      setPersonalOverviewReady(false)
-      Promise.all([loadBudgets(), loadFixedExpenses(), loadFixedOccurrences()]).then(() => {
-        if (!cancelled) setPersonalOverviewReady(true)
-      })
-    }
-
-    if (isShared) {
-      loadMembers()
-      loadSplits()
-      loadSettlements()
-    } else {
-      setPersonalOverviewReady(false)
+    const epoch = ++loadEpoch.current
+    setFinancialLoadFailed(false)
+    setOverviewLoadError(false)
+    setPersonalOverviewReady(false)
+    const requests = [loadTransactions(epoch)]
+    if (isShared) requests.push(loadMembers(epoch), loadSplits(epoch), loadSettlements(epoch))
+    else {
+      requests.push(loadBudgets(epoch), loadFixedExpenses(epoch), loadFixedOccurrences(epoch))
       setAllMembers([])
       setSplits([])
       setSettlements([])
     }
-    return () => { cancelled = true }
+    Promise.allSettled(requests).then(results => {
+      if (cancelled || epoch !== loadEpoch.current) return
+      setOverviewLoadError(results.some(result => result.status === 'rejected'))
+      setLoading(false)
+      setPersonalOverviewReady(!isShared)
+      setLoadedScope(overviewScope)
+    })
+    return () => { cancelled = true; loadEpoch.current += 1 }
   }, [
-    activeSpace?.id,
+    overviewScope,
     isShared,
-    refreshKey,
   ])
 
   const currentMonth = getLocalMonthKey()
 
-  async function loadBudgets() {
+  async function loadBudgets(epoch = loadEpoch.current) {
     const { data, error } = await fetchMonthlyBudgets(activeSpace.id, user.id, currentMonth)
+    if (epoch !== loadEpoch.current) return
     if (error) {
       console.error(`Could not load budgets: ${error.code || ''} ${error.message || ''}`)
       setBudgets([])
+      setFinancialLoadFailed(true)
       return
     }
     setBudgets(data ?? [])
   }
 
-  async function loadFixedExpenses() {
+  async function loadFixedExpenses(epoch = loadEpoch.current) {
     const { data, error } = await fetchFixedExpenses(activeSpace.id, user.id)
+    if (epoch !== loadEpoch.current) return
     if (error) {
       console.error(`Could not load fixed expenses: ${error.code || ''} ${error.message || ''}`)
       setFixedExpenses([])
+      setFinancialLoadFailed(true)
       return
     }
     setFixedExpenses(data ?? [])
   }
 
-  async function loadFixedOccurrences() {
+  async function loadFixedOccurrences(epoch = loadEpoch.current) {
     const { data, error } = await fetchFixedExpenseOccurrences(activeSpace.id, user.id, currentMonth)
+    if (epoch !== loadEpoch.current) return
     if (error) {
       console.error(`Could not load recurring occurrences: ${error.code || ''} ${error.message || ''}`)
       setFixedOccurrences([])
+      setFinancialLoadFailed(true)
       return
     }
     setFixedOccurrences(data ?? [])
   }
 
-  async function resolveUpcomingBill(expenseId, action) {
-    setResolvingFixedId(expenseId)
+  async function resolveUpcomingBill(bill, action, paidOn) {
+    if (resolvingFixedId) return
+    setResolvingFixedId(bill.occurrence_key)
     setFixedActionError('')
-    const { error } = await resolveFixedExpenseOccurrence(expenseId, currentMonth, action)
-    setResolvingFixedId('')
+    let error
+    try { ({ error } = await resolveFixedExpenseOccurrenceV2(bill.fixed_expense_id, bill.due_date, action, paidOn)) }
+    catch (failure) { error = failure }
     if (error) {
+      setResolvingFixedId('')
       console.error(`Could not resolve recurring expense: ${error.code || ''} ${error.message || ''}`)
-      setFixedActionError(error.message || t('recurringActionError'))
+      setFixedActionError(t('recurringActionError'))
       return
     }
     await Promise.all([loadFixedOccurrences(), loadTransactions()])
+    setResolvingFixedId('')
   }
 
-  async function loadTransactions() {
+  async function loadTransactions(epoch = loadEpoch.current) {
     setLoading(true)
 
     const { data, error } =
@@ -309,6 +333,7 @@ export default function Overview({
         activeSpace.id
       )
 
+    if (epoch !== loadEpoch.current) return
     setLoading(false)
 
     if (error) {
@@ -318,13 +343,14 @@ export default function Overview({
       )
 
       setTransactions([])
+      setFinancialLoadFailed(true)
       return
     }
 
     setTransactions(data ?? [])
   }
 
-  async function loadMembers() {
+  async function loadMembers(epoch = loadEpoch.current) {
     setMembersLoading(true)
 
     const { data, error } =
@@ -332,6 +358,7 @@ export default function Overview({
         activeSpace.id
       )
 
+    if (epoch !== loadEpoch.current) return
     setMembersLoading(false)
 
     if (error) {
@@ -364,12 +391,13 @@ export default function Overview({
     )
   }
 
-  async function loadSplits() {
+  async function loadSplits(epoch = loadEpoch.current) {
     setSplitsLoading(true)
 
     const { data, error } =
       await fetchTransactionSplits()
 
+    if (epoch !== loadEpoch.current) return
     setSplitsLoading(false)
 
     if (error) {
@@ -385,7 +413,7 @@ export default function Overview({
     setSplits(data ?? [])
   }
 
-  async function loadSettlements() {
+  async function loadSettlements(epoch = loadEpoch.current) {
     setSettlementsLoading(true)
 
     const { data, error } =
@@ -393,6 +421,7 @@ export default function Overview({
         activeSpace.id
       )
 
+    if (epoch !== loadEpoch.current) return
     setSettlementsLoading(false)
 
     if (error) {
@@ -590,6 +619,9 @@ export default function Overview({
 
   const totals = useMemo(() => {
     const now = new Date()
+    if (!isShared) return summarizeFinancialTransactions(transactions, {
+      month: getLocalMonthKey(now), throughDate: getLocalDateKey(now), currency: activeSpace.currency || 'USD',
+    })
 
     const currentMonth =
       now.getMonth()
@@ -644,7 +676,7 @@ export default function Overview({
         expenses: 0,
       }
     )
-  }, [transactions])
+  }, [transactions, isShared, activeSpace.currency])
 
   const net =
     totals.income -
@@ -653,6 +685,7 @@ export default function Overview({
   const safeToSpend = useMemo(() => calculateSafeToSpend({
     transactions,
     monthlyBudget: budgets.find(item => item.category === '__TOTAL__')?.amount || 0,
+    hasPlan: hasMonthlyTotalBudget(budgets),
     fixedExpenses,
     fixedExpenseOccurrences: fixedOccurrences,
     currency: activeSpace.currency || 'USD',
@@ -660,7 +693,7 @@ export default function Overview({
 
   const hasMonthlyBudget = useMemo(() => hasMonthlyTotalBudget(budgets), [budgets])
 
-  const personalAnalytics = useMemo(() => buildPersonalAnalytics({
+  const baseAnalytics = useMemo(() => buildPersonalAnalytics({
     transactions,
     budgets,
   }), [transactions, budgets])
@@ -669,6 +702,12 @@ export default function Overview({
     () => getUpcomingBills(fixedExpenses, fixedOccurrences, currentMonth),
     [fixedExpenses, fixedOccurrences, currentMonth]
   )
+
+  const financialQuality = useMemo(() => assessFinancialData({ transactions, result: safeToSpend, loadFailed: financialLoadFailed }), [transactions, safeToSpend, financialLoadFailed])
+  const personalAnalytics = useMemo(() => {
+    const engine = buildSignalEngine({ analytics: baseAnalytics, result: safeToSpend, upcomingBills, quality: financialQuality })
+    return { ...baseAnalytics, ...engine, quality: financialQuality }
+  }, [baseAnalytics, safeToSpend, upcomingBills, financialQuality])
 
   /*
     IMPORTANT:
@@ -883,8 +922,21 @@ export default function Overview({
   const recentSettlements =
     settlements.slice(0, 5)
 
+  const loadState = overviewLoadState({ scope: overviewScope, loadedScope, pending: loading, failed: overviewLoadError })
+  const overviewRevealRef = useOverviewReveal(loadState, overviewScope)
+  if (loadState !== 'ready') return <div ref={overviewRevealRef} className={`page overview-page ${isShared ? 'shared-overview' : 'personal-overview'}`}>
+    <div className="page-header overview-masthead"><div><p className="eyebrow">{t(isShared ? 'sharedSpace' : 'personal')}</p><h1>{overviewTitle}</h1></div>
+      {onAddTransaction && <button className="primary" type="button" onClick={onAddTransaction}><Plus size={18} />{t('addTransaction')}</button>}
+    </div>
+    {loadState === 'error' ? <section className="panel empty-state"><p role="alert">{t('data_load_failed')}</p><button className="secondary" onClick={() => setRetryNonce(value => value + 1)}>{t('retry')}</button></section>
+      : <OverviewSkeleton label={t('loadingYourMoney')} shared={isShared} />}
+  </div>
+
   return (
-    <div className={`page overview-page ${isShared ? 'shared-overview' : 'personal-overview'}`}>
+    <div ref={overviewRevealRef} className={`page overview-page overview-content-ready ${isShared ? 'shared-overview' : 'personal-overview'}`}>
+      <div className="overview-transition-skeleton" aria-hidden="true" inert="">
+        <OverviewSkeleton label={t('loadingYourMoney')} shared={isShared} />
+      </div>
       <div className="page-header overview-masthead">
         <div>
           <p className="eyebrow">
@@ -1316,7 +1368,7 @@ export default function Overview({
           </section>
         )}
 
-      {!isShared && !loading && personalOverviewReady && (
+      {!isShared && !loading && personalOverviewReady && !financialLoadFailed && (
         <PersonalOverviewHero
           safeToSpend={safeToSpend}
           totals={totals}
@@ -1327,6 +1379,15 @@ export default function Overview({
       )}
 
       {!isShared && (
+        !loading && personalOverviewReady && <FinancialDataNotice quality={financialQuality} />
+      )}
+
+
+      {!isShared && (
+        !loading && personalOverviewReady && !financialLoadFailed && <SpendingPaceCard result={safeToSpend} currency={activeSpace.currency || 'USD'} />
+      )}
+
+      {!isShared && !loading && personalOverviewReady && !financialLoadFailed && (
         <UpcomingBillsCard
           bills={upcomingBills}
           currency={activeSpace.currency || 'USD'}
@@ -1336,12 +1397,12 @@ export default function Overview({
         />
       )}
 
-      {!isShared && !loading && (
+      {!isShared && !loading && personalOverviewReady && !financialLoadFailed && (
         <div className="fin-analytics-grid">
           <WeeklyRecapCard analytics={personalAnalytics} currency={activeSpace.currency || 'USD'} />
           <SpendingBreakdownCard analytics={personalAnalytics} currency={activeSpace.currency || 'USD'} />
-          <MoneySignalsPanel analytics={personalAnalytics} currency={activeSpace.currency || 'USD'} activeSpace={activeSpace} />
-          <ReflectionPanel analytics={personalAnalytics} activeSpace={activeSpace} currency={activeSpace.currency || 'USD'} />
+          <MoneySignalsPanel analytics={personalAnalytics} currency={activeSpace.currency || 'USD'} activeSpace={activeSpace} checkins={checkins} />
+          <ReflectionPanel key={`${user.id}:${activeSpace.id}:${personalAnalytics.weekly.start}`} analytics={personalAnalytics} activeSpace={activeSpace} currency={activeSpace.currency || 'USD'} checkins={checkins} />
         </div>
       )}
 
@@ -1359,7 +1420,7 @@ export default function Overview({
           </div>
         </div>
 
-        {loading ? (
+        {!isShared && financialLoadFailed ? <p className="empty-state">{t('data_load_failed')}</p> : loading ? (
           <div className="empty-state">
             {t('loadingTransactions')}
           </div>
@@ -1430,21 +1491,21 @@ export default function Overview({
       </section>
 
       <aside className="fin-utility-rail">
-        {!isShared && !loading && personalOverviewReady && (
+        {!isShared && !loading && personalOverviewReady && !financialLoadFailed && (
           <details className="panel budget-summary-card">
             <summary>
               <div><p className="eyebrow">{t('budget')}</p><strong>{t('monthlyBudget')}</strong></div>
               <span>{money(safeToSpend.budgetAmount, activeSpace.currency || 'USD')}</span>
             </summary>
             <div className="budget-summary-content">
-              <div><span>{t('fixedExpenses')}</span><strong>{money(safeToSpend.fixedAmount, activeSpace.currency || 'USD')}</strong></div>
+              <div><span>{t('upcomingObligations')}</span><strong>{money(safeToSpend.obligationAmount, activeSpace.currency || 'USD')}</strong></div>
               <div><span>{t('spentThisMonth')}</span><strong>{money(safeToSpend.spentAmount, activeSpace.currency || 'USD')}</strong></div>
               <Link className="secondary" to="/budget">{t('manageBudget')}</Link>
             </div>
           </details>
         )}
 
-        {!loading && (
+        {!loading && (isShared || !financialLoadFailed) && (
           <CurrencyOverviewCard
             transactions={transactions}
             baseCurrency={activeSpace.currency || 'USD'}

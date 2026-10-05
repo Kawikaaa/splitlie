@@ -126,7 +126,7 @@ export async function deleteMonthlyBudget(budgetId) {
 
 export async function fetchFixedExpenses(spaceId, userId) {
   return supabase.from('fixed_expenses').select('*')
-    .eq('space_id', spaceId).eq('user_id', userId).eq('active', true)
+    .eq('space_id', spaceId).eq('user_id', userId)
     .order('due_day').order('created_at')
 }
 
@@ -142,9 +142,39 @@ export async function deleteFixedExpense(expenseId) {
   return supabase.from('fixed_expenses').delete().eq('id', expenseId)
 }
 
-export async function fetchFixedExpenseOccurrences(spaceId, userId, month) {
-  return supabase.from('fixed_expense_occurrences').select('*')
-    .eq('space_id', spaceId).eq('user_id', userId).eq('occurrence_month', `${month}-01`)
+export async function fetchFixedExpenseOccurrences(spaceId, userId) {
+  const rows = []
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await supabase.from('fixed_expense_occurrences').select('*')
+      .eq('space_id', spaceId).eq('user_id', userId).order('id').range(offset, offset + 999)
+    if (error) return { data: null, error }
+    rows.push(...data)
+    if (data.length < 1000) return { data: rows, error: null }
+  }
+}
+
+export function setFixedExpensePaused(id, paused, today) {
+  return supabase.rpc('set_fixed_expense_paused', { p_id: id, p_paused: paused, p_today: today })
+}
+
+export function resolveFixedExpenseOccurrenceV2(id, dueDate, action, paidOn = null) {
+  return supabase.rpc('resolve_fixed_expense_occurrence_v2', {
+    p_fixed_expense_id: id, p_due_date: dueDate, p_action: action, p_paid_on: paidOn,
+  })
+}
+
+// Uses the same authenticated reads and ownership filters as existing Personal Space pages.
+// An incomplete read cannot be a before/after accounting baseline.
+export async function fetchPersonalFinancialState({ spaceId, userId, month }) {
+  try {
+    const results = await Promise.all([
+      fetchTransactions(spaceId), fetchMonthlyBudgets(spaceId, userId, month),
+      fetchFixedExpenses(spaceId, userId), fetchFixedExpenseOccurrences(spaceId, userId, month),
+    ])
+    if (results.some(result => result.error)) return null
+    const [transactions, budgets, fixedExpenses, fixedExpenseOccurrences] = results.map(result => result.data || [])
+    return { transactions, budgets, fixedExpenses, fixedExpenseOccurrences }
+  } catch { return null }
 }
 
 export async function resolveFixedExpenseOccurrence(fixedExpenseId, month, action) {
@@ -405,12 +435,15 @@ export async function updatePersonalTransaction({
   transactionId,
   spaceId,
   changes,
+  expectedUpdatedAt,
 }) {
-  return supabase
+  let query = supabase
     .from('transactions')
     .update(changes)
     .eq('id', transactionId)
     .eq('space_id', spaceId)
+  if (expectedUpdatedAt) query = query.eq('updated_at', expectedUpdatedAt)
+  return query.select('id').single()
 }
 
 export async function createSharedTransaction(

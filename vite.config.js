@@ -9,6 +9,8 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined
           if (id.includes('@supabase')) return 'supabase'
+          if (id.includes('gsap') || id.includes('framer-motion') ||
+              id.includes('motion-dom') || id.includes('motion-utils')) return 'motion-vendor'
           if (
             id.includes('react') ||
             id.includes('scheduler')

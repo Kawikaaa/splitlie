@@ -95,6 +95,10 @@ function cleanDescription(text) {
 export function parseQuickTransaction(text, { fallbackCurrency = 'USD', today = getToday() } = {}) {
   const normalized = text.trim()
   if (!normalized) return { ok: false, reason: 'empty' }
+  // Do not save these as income/expense until their explicit entry and persistence are ready.
+  if (/\b(refund|reimbursement|transfer|reembolso|transferencia)\b|退款|转账|返金|振込|환불|송금/i.test(normalized)) {
+    return { ok: false, reason: 'semanticTypeUnsupported' }
+  }
 
   const amount = parseAmount(normalized)
   if (!amount) return { ok: false, reason: 'amount' }

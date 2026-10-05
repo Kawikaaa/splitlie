@@ -11,6 +11,7 @@ import {
   Plus,
   ReceiptText,
   Settings,
+  WalletCards,
 } from '../icons'
 
 import SpaceSwitcher from './SpaceSwitcher'
@@ -79,6 +80,10 @@ export default function Layout({
       ReceiptText,
     ],
     ...(activeSpace.type === 'personal' ? [[
+      '/my-money',
+      t('moneyTitle'),
+      WalletCards,
+    ], [
       '/budget',
       t('budget'),
       CircleDollarSign,
@@ -180,7 +185,7 @@ export default function Layout({
 
       <main className="main-content" id="main-content" tabIndex={-1}>{children}</main>
 
-      <nav className="mobile-bottom-nav" aria-label={t('workspace')}>
+      <nav className="mobile-bottom-nav" aria-label={t('workspace')} style={{ gridTemplateColumns: `repeat(${nav.length - 1}, minmax(0, 1fr))` }}>
         {nav.map(([path, label, Icon]) => (
           <Link
             key={path}

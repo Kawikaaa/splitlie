@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom'
 
 import Layout from './components/Layout'
+import MyMoney from './pages/MyMoney'
 import TransactionModal from './components/TransactionModal'
 import AppLoadingShell from './components/AppLoadingShell'
 
@@ -19,6 +20,7 @@ import Auth from './pages/Auth'
 import LandingPage from './pages/LandingPage'
 import AllSpaces from './pages/AllSpaces'
 import LegalPage from './pages/LegalPage'
+import usePublicNavigation from './hooks/usePublicNavigation'
 
 import { supabase } from './lib/supabase'
 import { useLanguage } from './i18n/LanguageContext'
@@ -30,6 +32,7 @@ import {
 
 export default function App() {
   const navigate = useNavigate()
+  const navigatePublic = usePublicNavigation()
   const { t } = useLanguage()
 
   const [session, setSession] = useState(null)
@@ -382,8 +385,8 @@ export default function App() {
   if (currentPath === '/welcome') {
     return (
       <LandingPage
-        onGetStarted={() => navigate('/signup')}
-        onLogin={() => navigate('/login')}
+        onGetStarted={() => navigatePublic('/signup')}
+        onLogin={() => navigatePublic('/login')}
       />
     )
   }
@@ -392,7 +395,7 @@ export default function App() {
     return (
       <Auth
         initialMode={publicAuthMode}
-        onBack={() => navigate('/welcome')}
+        onBack={() => navigatePublic('/welcome')}
         onAuthenticated={() => navigate('/')}
       />
     )
@@ -408,8 +411,8 @@ export default function App() {
 
     return (
       <LandingPage
-        onGetStarted={() => navigate('/signup')}
-        onLogin={() => navigate('/login')}
+        onGetStarted={() => navigatePublic('/signup')}
+        onLogin={() => navigatePublic('/login')}
       />
     )
   }
@@ -562,6 +565,8 @@ export default function App() {
                   path="/budget"
                   element={<Budget activeSpace={activeSpace} user={session.user} refreshKey={refreshKey} />}
                 />
+
+                <Route path="/my-money" element={<MyMoney activeSpace={activeSpace} user={session.user} refreshKey={refreshKey} />} />
 
                 <Route
                   path="/settings"

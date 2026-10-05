@@ -1,4 +1,6 @@
 import ModalSurface from './ModalSurface'
+import { useTransactionAccount } from '../features/accounts/useTransactionAccount'
+import TransactionAccountField from '../features/accounts/TransactionAccountField'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, ChevronUp, Mic, RefreshCw, Sparkles, Square, X } from '../icons'
 
@@ -98,6 +100,7 @@ export default function TransactionModal({
   const isEditing = Boolean(
     transaction?.id
   )
+  const accountLink = useTransactionAccount({ open, personal: !isShared, userId: user?.id, spaceId: activeSpace?.id, transaction, currency, date, amount })
 
   const suggestedCategories = useMemo(() => {
     const counts = new Map()
@@ -191,7 +194,7 @@ export default function TransactionModal({
     setQuickStatus('')
     setQuickParsing(false)
     setIsListening(false)
-    setDetailsExpanded(Boolean(transaction?.id))
+    setDetailsExpanded(true)
 
     const initialValues =
       createTransactionFormValues({
@@ -678,7 +681,7 @@ export default function TransactionModal({
     setQuickParsing(false)
 
     if (!parsed.ok) {
-      setQuickStatus(parsed.reason === 'amount' ? 'amount' : 'empty')
+      setQuickStatus(['amount', 'semanticTypeUnsupported'].includes(parsed.reason) ? parsed.reason : 'empty')
       return false
     }
 
@@ -794,6 +797,7 @@ export default function TransactionModal({
   }
 
   async function savePersonalTransaction() {
+    if (!accountLink.ready || !accountLink.payload) { setError(t('moneyAccountUnavailable')); return }
     setSaving(true)
 
     let saveError = null
@@ -805,7 +809,9 @@ export default function TransactionModal({
             transaction.id,
           spaceId:
             activeSpace.id,
+          expectedUpdatedAt: transaction.updated_at,
           changes: {
+            ...accountLink.payload,
             paid_by:
               user.id,
 
@@ -842,6 +848,7 @@ export default function TransactionModal({
     } else {
       const { error } =
         await createPersonalTransaction({
+            ...accountLink.payload,
             space_id:
               activeSpace.id,
 
@@ -882,11 +889,10 @@ export default function TransactionModal({
       saveError = error
     }
 
-    setSaving(false)
-
     if (saveError) {
+      setSaving(false)
       setError(
-        saveError.message
+        t(saveError.message?.includes('ACCOUNT_INSUFFICIENT') ? 'moneyInsufficient' : saveError.message?.includes('ACCOUNT_ARCHIVED') ? 'moneyAccountArchivedError' : saveError.code === 'PGRST116' ? 'moneyTransactionConflict' : saveError.message?.includes('ACCOUNT_') ? 'moneyAccountUnavailable' : 'moneyTransactionSaveError')
       )
 
       return
@@ -896,6 +902,7 @@ export default function TransactionModal({
       await onSaved()
     }
 
+    setSaving(false)
     onClose()
   }
 
@@ -1121,12 +1128,6 @@ export default function TransactionModal({
       >
         <div className="modal-heading">
           <div>
-            <p className="eyebrow">
-              {isShared
-                ? t('sharedTransaction')
-                : t('personalTransaction')}
-            </p>
-
             <h2 id="transaction-editor-title">
               {isEditing
                 ? t('editTransaction')
@@ -1193,7 +1194,7 @@ export default function TransactionModal({
               </div>
               {quickStatus && (
                 <p aria-live="polite" className={`quick-add-status ${quickStatus === 'ready' ? 'success' : ['listening', 'parsing', 'review'].includes(quickStatus) ? 'listening' : 'error'}`}>
-                  {t({ ready: 'quickAddReady', review: 'quickAddReview', listening: 'voiceListening', parsing: 'analyzingTransaction', unsupported: 'voiceUnsupported', voiceError: 'voiceError', amount: 'quickAddAmountMissing', empty: 'quickAddEmpty' }[quickStatus])}
+                  {t({ ready: 'quickAddReady', review: 'quickAddReview', listening: 'voiceListening', parsing: 'analyzingTransaction', unsupported: 'voiceUnsupported', voiceError: 'voiceError', amount: 'quickAddAmountMissing', empty: 'quickAddEmpty', semanticTypeUnsupported: 'semanticTypeUnsupported' }[quickStatus])}
                 </p>
               )}
             </section>
@@ -1364,7 +1365,7 @@ export default function TransactionModal({
               />
             </div>
 
-            <div className={`fx-preview ${fxError ? 'error' : ''}`}>
+            {isCrossCurrency && <div className={`fx-preview ${fxError ? 'error' : ''}`}>
               <span>{t('spaceAccountingAmount', { currency: baseCurrency })}</span>
               <strong>
                 {fxLoading
@@ -1390,7 +1391,7 @@ export default function TransactionModal({
                   <RefreshCw size={13} /> {fxLoading ? t('converting') : t('refreshRate')}
                 </button>
               )}
-            </div>
+            </div>}
           </label>
 
           <label className="transaction-description-field">
@@ -1442,6 +1443,8 @@ export default function TransactionModal({
               />
             </label>
           </div>
+
+          {!isShared && <TransactionAccountField link={accountLink} type={type} paymentStatus={paymentStatus} />}
 
           {!isShared && type === 'expense' && (
             <div className="transaction-status-field">
@@ -1583,6 +1586,8 @@ export default function TransactionModal({
 
           </div>
 
+          {!isShared && !detailsExpanded && <TransactionAccountField link={accountLink} type={type} paymentStatus={paymentStatus} />}
+
           {error && (
             <div className="auth-message error">
               {error}
@@ -1604,7 +1609,7 @@ export default function TransactionModal({
               type="submit"
               disabled={
                 saving ||
-                membersLoading
+                membersLoading || (!isShared && !accountLink.ready)
               }
             >
               {saving

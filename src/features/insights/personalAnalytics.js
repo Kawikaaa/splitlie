@@ -1,4 +1,4 @@
-import { getAccountingAmount } from '../../services/currency/currencyService.js'
+import { normalizeFinancialTransactions } from '../financial/transactionSemantics.js'
 
 const round = (value) => Math.round((Number(value) + Number.EPSILON) * 100) / 100
 const average = (values) => values.length ? round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0
@@ -23,11 +23,9 @@ function startOfWeek(date) {
 }
 
 function expenseRows(transactions) {
-  return transactions.flatMap((item) => {
-    if (item.type !== 'expense' || (item.payment_status || 'paid') !== 'paid') return []
-    const amount = getAccountingAmount(item)
-    if (amount === null || !item.transaction_date) return []
-    return [{ ...item, accountingAmount: amount, category: item.category || 'Other' }]
+  return normalizeFinancialTransactions(transactions).rows.flatMap((item) => {
+    if (!item.spendingAmount) return []
+    return [{ ...item, accountingAmount: item.spendingAmount }]
   })
 }
 
@@ -39,7 +37,7 @@ function sumByCategory(rows) {
 
 function countByCategory(rows) {
   const counts = new Map()
-  rows.forEach((item) => counts.set(item.category, (counts.get(item.category) || 0) + 1))
+  rows.filter(item => item.type === 'expense').forEach((item) => counts.set(item.category, (counts.get(item.category) || 0) + 1))
   return counts
 }
 
@@ -72,7 +70,7 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
   const monthKey = dayKey(today).slice(0, 7)
   const previousMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 15, 12)
   const previousMonthKey = dayKey(previousMonthDate).slice(0, 7)
-  const rows = expenseRows(transactions)
+  const rows = expenseRows(transactions).filter(item => item.transaction_date <= dayKey(today))
   const currentMonthRows = rows.filter((item) => item.transaction_date.slice(0, 7) === monthKey)
   const previousMonthRows = rows.filter((item) => item.transaction_date.slice(0, 7) === previousMonthKey)
   const categoryBreakdown = sumByCategory(currentMonthRows)
@@ -156,7 +154,7 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
       }))
   }
 
-  const smallPurchases = currentWeekRows.filter((item) => item.accountingAmount < SIGNAL_THRESHOLDS.smallPurchaseLimit)
+  const smallPurchases = currentWeekRows.filter((item) => item.type === 'expense' && item.accountingAmount > 0 && item.accountingAmount < SIGNAL_THRESHOLDS.smallPurchaseLimit)
   const smallPurchaseTotal = round(smallPurchases.reduce((sum, item) => sum + item.accountingAmount, 0))
   if (smallPurchases.length >= SIGNAL_THRESHOLDS.smallPurchaseCount && smallPurchaseTotal >= SIGNAL_THRESHOLDS.smallPurchaseTotal) {
     signals.push({
@@ -167,7 +165,7 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
     })
   }
 
-  const largestPurchase = [...currentWeekRows].sort((a, b) => b.accountingAmount - a.accountingAmount)[0] || null
+  const largestPurchase = currentWeekRows.filter(item => item.type === 'expense').sort((a, b) => b.accountingAmount - a.accountingAmount)[0] || null
   if (largestPurchase && largestPurchase.accountingAmount >= SIGNAL_THRESHOLDS.largePurchaseMinimum && largestPurchase.accountingAmount >= currentWeekTotal * SIGNAL_THRESHOLDS.largePurchaseShare) {
     signals.push({
       type: 'large_purchase', category: largestPurchase.category, currentValue: largestPurchase.accountingAmount, baselineValue: baselineTotal,
@@ -186,7 +184,7 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
   })
 
   const dedupedSignals = signals.sort((a, b) => b.significance - a.significance)
-    .filter((signal, index, list) => list.findIndex((item) => item.type === signal.type && item.category === signal.category) === index).slice(0, 4)
+    .filter((signal, index, list) => list.findIndex((item) => item.type === signal.type && item.category === signal.category) === index)
   const previousWeek = historicalWeeks[0]
   const previousMonthTotal = round(previousMonthRows.reduce((sum, item) => sum + item.accountingAmount, 0))
   const currentMonthTotal = round(currentMonthRows.reduce((sum, item) => sum + item.accountingAmount, 0))
@@ -205,7 +203,8 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
       history: baselineWeeks.map((week) => ({ label: week.start, value: week.total })).reverse(),
     },
     budgetStatuses,
-    signals: hasReliableBaseline ? dedupedSignals : [],
+    // Comparative rules above already require a baseline. Absolute facts do not.
+    signals: dedupedSignals,
     baseline: { ready: hasReliableBaseline, weekCount: baselineWeekCount },
     monthlyReflection: {
       ready: today.getDate() >= 25 && currentMonthRows.length >= 3,

@@ -1,5 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { authMotionLocales } from './authMotionLocales'
+import { recurringLocales } from './recurringLocales'
+import { accountsLocales } from './accountsLocales'
 import { additionalLocales } from './additionalLocales'
+import { financialLocales } from './financialLocales'
+import { checkinLocales } from './checkinLocales'
 
 export const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' },
@@ -160,6 +165,11 @@ const translations = {
 const LanguageContext = createContext(null)
 
 Object.assign(translations, additionalLocales)
+Object.entries(financialLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
+Object.entries(checkinLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
+Object.entries(authMotionLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
+Object.entries(recurringLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
+Object.entries(accountsLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {

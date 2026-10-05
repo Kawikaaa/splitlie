@@ -3,20 +3,25 @@ import { useEffect, useMemo, useState } from 'react'
 import CategoryIcon from '../../components/CategoryIcon'
 import CategorySelect, { getCategoryTranslationKey } from '../../components/CategorySelect'
 import { TRANSACTION_CATEGORIES } from '../transactions/transactionUtils'
-import { useLanguage } from '../../i18n/LanguageContext'
+import { getLanguageLocale, useLanguage } from '../../i18n/LanguageContext'
+import { getNextRecurringDate } from '../financial/recurringEngine.js'
+import { getLocalDateKey } from '../../utils/dateKeys.js'
+import './Recurring.css'
 import { formatCurrency } from '../../services/currency/currencyFormatter'
 import ConfirmActionModal from '../../components/ConfirmActionModal'
 
 function money(value, currency) { return formatCurrency(value, currency) }
 
-export default function BudgetPanel({ budget, fixedExpenses, currency, result, selectedMonth, error, onSaveBudget, onAddFixed, onEditFixed, onDeleteFixed }) {
-  const { t } = useLanguage()
+export default function BudgetPanel({ budget, fixedExpenses, currency, result, selectedMonth, error, onSaveBudget, onAddFixed, onEditFixed, onDeleteFixed, onTogglePaused }) {
+  const { language, t } = useLanguage()
   const [budgetAmount, setBudgetAmount] = useState('')
   const [addingFixed, setAddingFixed] = useState(false)
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('Housing')
   const [dueDay, setDueDay] = useState('1')
+  const [frequency, setFrequency] = useState('monthly')
+  const [anchorDate, setAnchorDate] = useState(() => getLocalDateKey())
   const [editingId, setEditingId] = useState(null)
   const [busyAction, setBusyAction] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -28,12 +33,14 @@ export default function BudgetPanel({ budget, fixedExpenses, currency, result, s
     await onSaveBudget(Number(budgetAmount))
     setBusyAction('')
   }
-  function resetFixedForm() { setName(''); setAmount(''); setCategory('Housing'); setDueDay('1'); setEditingId(null); setAddingFixed(false) }
+  function resetFixedForm() { setName(''); setAmount(''); setCategory('Housing'); setDueDay('1'); setFrequency('monthly'); setAnchorDate(getLocalDateKey()); setEditingId(null); setAddingFixed(false) }
+  const cycleValid = frequency === 'monthly' ? Number.isInteger(Number(dueDay)) && Number(dueDay) >= 1 && Number(dueDay) <= 31
+    : /^\d{4}-\d{2}-\d{2}$/.test(anchorDate) && anchorDate.slice(0, 4) !== '0000' && Number.isFinite(new Date(`${anchorDate}T00:00:00Z`).getTime()) && new Date(`${anchorDate}T00:00:00Z`).toISOString().slice(0, 10) === anchorDate
   async function saveFixed() {
-    if (busyAction || !name.trim() || !Number.isFinite(Number(amount)) || !(Number(amount) > 0) || !(Number(dueDay) >= 1 && Number(dueDay) <= 31 && Number.isInteger(Number(dueDay)))) return
+    if (busyAction || !name.trim() || !Number.isFinite(Number(amount)) || !(Number(amount) > 0) || !cycleValid) return
     const changes = { name: name.trim(), amount: Number(amount), category, due_day: Math.min(31, Math.max(1, Number(dueDay) || 1)) }
     setBusyAction('fixed')
-    const result = editingId ? await onEditFixed(editingId, changes) : await onAddFixed(changes)
+    const result = editingId ? await onEditFixed(editingId, changes) : await onAddFixed({ ...changes, frequency, anchor_date: frequency === 'monthly' ? null : anchorDate })
     setBusyAction('')
     if (!result?.error) resetFixedForm()
   }
@@ -44,7 +51,17 @@ export default function BudgetPanel({ budget, fixedExpenses, currency, result, s
     setBusyAction('')
     if (!result?.error) setDeleteTarget(null)
   }
-  function beginEdit(item) { setEditingId(item.id); setName(item.name); setAmount(String(item.amount)); setCategory(item.category || 'Other'); setDueDay(String(item.due_day || 1)); setAddingFixed(true) }
+  function beginEdit(item) { setEditingId(item.id); setName(item.name); setAmount(String(item.amount)); setCategory(item.category || 'Other'); setDueDay(String(item.due_day || 1)); setFrequency(item.frequency || 'monthly'); setAnchorDate(item.anchor_date || getLocalDateKey()); setAddingFixed(true) }
+  async function togglePaused(item) {
+    if (busyAction) return
+    setBusyAction(item.id)
+    try { await onTogglePaused(item) } finally { setBusyAction('') }
+  }
+  const frequencyLabel = value => t({ weekly: 'recurringWeekly', monthly: 'recurringMonthly', yearly: 'recurringYearly' }[value || 'monthly'])
+  function nextDateLabel(item) {
+    const next = getNextRecurringDate(item, getLocalDateKey())
+    return next ? t('recurringNextDate', { date: new Intl.DateTimeFormat(getLanguageLocale(language), { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${next}T12:00:00`)) }) : t('recurringNoneScheduled')
+  }
   const progressClass = result.safeToSpend < 0 ? 'over' : result.usedPercent >= 80 ? 'warning' : ''
   return (
     <section className="panel budget-panel">
@@ -68,8 +85,11 @@ export default function BudgetPanel({ budget, fixedExpenses, currency, result, s
           <label>{t('fixedExpenseName')}<input value={name} onChange={event => setName(event.target.value)} placeholder={t('fixedExpenseExample')} /></label>
           <label>{t('amount')}<input type="number" min="0" step="0.01" value={amount} onChange={event => setAmount(event.target.value)} /></label>
           <label>{t('category')}<CategorySelect value={category} options={choices} onChange={setCategory} /></label>
-          <label>{t('dueDay')}<input type="number" min="1" max="31" value={dueDay} onChange={event => setDueDay(event.target.value)} /></label>
-          <button className="primary" type="button" disabled={Boolean(busyAction) || !name.trim() || !Number.isFinite(Number(amount)) || !(Number(amount) > 0) || !(Number(dueDay) >= 1 && Number(dueDay) <= 31 && Number.isInteger(Number(dueDay)))} onClick={saveFixed}>{busyAction === 'fixed' ? t('saving') : editingId ? t('saveChanges') : t('saveFixedExpense')}</button>
+          <label>{t('recurringFrequency')}<select disabled={Boolean(editingId)} value={frequency} onChange={event => setFrequency(event.target.value)}>{['weekly', 'monthly', 'yearly'].map(value => <option key={value} value={value}>{frequencyLabel(value)}</option>)}</select></label>
+          {frequency === 'monthly' ? <label>{t('dueDay')}<input type="number" min="1" max="31" value={dueDay} onChange={event => setDueDay(event.target.value)} /></label>
+            : <label>{t('recurringFirstDue')}<input type="date" required disabled={Boolean(editingId)} value={anchorDate} onChange={event => setAnchorDate(event.target.value)} /></label>}
+          {editingId && <p className="muted recurring-form-help">{t('recurringCycleLocked')}</p>}
+          <button className="primary" type="button" disabled={Boolean(busyAction) || !name.trim() || !Number.isFinite(Number(amount)) || !(Number(amount) > 0) || !cycleValid} onClick={saveFixed}>{busyAction === 'fixed' ? t('saving') : editingId ? t('saveChanges') : t('saveFixedExpense')}</button>
         </div>
       )}
       <div className="budget-list">
@@ -77,11 +97,12 @@ export default function BudgetPanel({ budget, fixedExpenses, currency, result, s
         {fixedExpenses.map(item => (
           <div className="budget-row" key={item.id}>
             <CategoryIcon category={item.category} />
-            <div className="budget-progress-copy"><div><strong>{item.name}</strong><span>{money(item.amount, currency)}</span></div><small>{t(getCategoryTranslationKey(item.category))} · {t('monthlyDueDay', { day: item.due_day })}</small></div>
-            <div className="budget-row-actions"><button className="icon-button" type="button" disabled={Boolean(busyAction)} onClick={() => beginEdit(item)} aria-label={t('editFixedExpense')}><Pencil size={15} /></button><button className="icon-button" type="button" disabled={Boolean(busyAction)} onClick={() => setDeleteTarget(item)} aria-label={t('deleteFixedExpense')}><Trash2 size={15} /></button></div>
+            <div className="budget-progress-copy"><div><strong>{item.name}</strong><span>{money(item.amount, currency)}</span></div><small>{t(getCategoryTranslationKey(item.category))} · {frequencyLabel(item.frequency)}{item.active === false ? ` · ${t('recurringPaused')}` : ''}</small><small>{nextDateLabel(item)}</small></div>
+            <div className="budget-row-actions"><button className="secondary compact" type="button" disabled={Boolean(busyAction)} onClick={() => togglePaused(item)}>{busyAction === item.id ? t('saving') : t(item.active === false ? 'resumeRecurring' : 'pauseRecurring')}</button><button className="icon-button" type="button" disabled={Boolean(busyAction)} onClick={() => beginEdit(item)} aria-label={t('editFixedExpense')}><Pencil size={15} /></button><button className="icon-button" type="button" disabled={Boolean(busyAction)} onClick={() => setDeleteTarget(item)} aria-label={t('deleteFixedExpense')}><Trash2 size={15} /></button></div>
           </div>
         ))}
       </div>
+      {fixedExpenses.length > 0 && <p className="muted recurring-pause-help">{t('recurringPauseHelp')}</p>}
       <ConfirmActionModal
         open={Boolean(deleteTarget)}
         title={t('deleteFixedExpenseQuestion')}

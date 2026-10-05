@@ -1,6 +1,7 @@
 import { ArrowRight, House, ShoppingBasket, Utensils, WalletCards } from '../icons'
 import { useLanguage } from '../i18n/LanguageContext'
 import PublicLanguageSelect from '../components/PublicLanguageSelect'
+import { useLandingEntrance } from '../hooks/usePublicEntrance'
 import './LandingPage.css'
 
 const PREVIEW_ROWS = [
@@ -19,10 +20,11 @@ function ProductPreview({ t }) {
   return (
     <figure className="lp-preview" aria-label={t('landingProductPreview')}>
       <div className="lp-ledger">
-        <div className="lp-available">
+        <div className="lp-available" data-public-shared data-flip-id="public-preview">
+          <div className="public-brand-plane" data-public-shared data-flip-id="public-plane" aria-hidden="true" />
           <WalletCards size={32} aria-hidden="true" />
           <span>{t('safeToSpend')}</span>
-          <strong>$631.93</strong>
+          <strong data-public-shared data-flip-id="public-amount" aria-label="$631.93"><span data-preview-amount aria-hidden="true">$631.93</span></strong>
           <p>{t('monthlyBudget')} $1,000.00</p>
         </div>
         <div className="lp-ledger-rows">
@@ -42,13 +44,14 @@ function ProductPreview({ t }) {
 
 export default function LandingPage({ onGetStarted, onLogin }) {
   const { language, t } = useLanguage()
+  const entrance = useLandingEntrance(language)
   const title = t('landingTitle').replace(TITLE_PUNCTUATION, '')
 
   return (
-    <div className="lp-page" lang={language}>
+    <div className="lp-page" lang={language} ref={entrance}>
       <a className="skip-link" href="#lp-main">{t('skipToContent')}</a>
       <header className="lp-header">
-        <a className="lp-brand" href="#top" aria-label={t('splitlyHome')}>
+        <a className="lp-brand" data-public-shared data-flip-id="public-logo" href="#top" aria-label={t('splitlyHome')}>
           <span className="lp-brand-mark" aria-hidden="true" />Splitlie
         </a>
         <nav className="lp-header-actions" aria-label={t('splitlyHome')}>
@@ -61,12 +64,12 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       <main id="lp-main">
         <section className="lp-hero" id="top" aria-labelledby="lp-title">
           <div className="lp-hero-copy">
-            <h1 id="lp-title">
+            <h1 id="lp-title" tabIndex={-1} data-public-shared data-flip-id="public-story">
               {language === 'zh'
                 ? <><span>{title.slice(0, 5)}</span><span>{title.slice(5)}</span></>
                 : title}
             </h1>
-            <p className="lp-intro">{t('landingCopy')}</p>
+            <p className="lp-intro" data-public-shared data-flip-id="public-copy">{t('landingCopy')}</p>
             <div className="lp-hero-actions">
               <button className="lp-button lp-main-cta" type="button" onClick={onGetStarted}>
                 {t('createAccount')}<ArrowRight size={26} aria-hidden="true" />
