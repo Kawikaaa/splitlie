@@ -1,6 +1,7 @@
 import { normalizeFinancialTransactions, roundMoney } from '../financial/transactionSemantics.js'
 import { calculateSpendingPace } from '../financial/spendingPace.js'
 import { getLocalDateKey, getLocalMonthKey } from '../../utils/dateKeys.js'
+import { getRecurringObligations, isRecurringOccurrenceResolved } from '../financial/recurringEngine.js'
 
 export function hasMonthlyTotalBudget(budgets = []) {
   return budgets.some(item => item?.category === '__TOTAL__')
@@ -16,22 +17,15 @@ export function calculateSafeToSpend({ transactions = [], monthlyBudget = 0, has
   const monthRows = rows.filter(row => row.transaction_date.slice(0, 7) === month)
   const spentAmount = monthRows.filter(row => row.transaction_date <= getLocalDateKey(now)).reduce((sum, row) => sum + row.spendingAmount, 0)
   const resolved = fixedExpenseOccurrences.filter(row => (!row.occurrence_month || row.occurrence_month.slice(0, 7) === month) && ['paid', 'skipped'].includes(row.status))
-  const resolvedFixedIds = new Set(resolved.map(row => row.fixed_expense_id))
-  const linkedFixedIds = new Set(monthRows.filter(row => row.spendingAmount > 0 || row.obligationAmount > 0).map(row => row.recurring_expense_id || row.fixed_expense_id).filter(Boolean))
-  const seenFixedIds = new Set()
-  const recurringItems = fixedExpenses
-    .filter((item) => {
-      if (seenFixedIds.has(item.id)) return false
-      seenFixedIds.add(item.id)
-      return !resolvedFixedIds.has(item.id) && !linkedFixedIds.has(item.id)
-    })
-    .filter((item) => item.active !== false && (item.currency || currency) === currency)
-    .filter((item) => Number.isFinite(Number(item.amount)) && Number(item.amount) >= 0)
-    .filter((item) => (!item.starts_on || item.starts_on <= monthEnd) && (!item.ends_on || item.ends_on >= monthStart))
-    .map((item) => ({ id: item.id, name: item.name, category: item.category || 'Other', amount: Number(item.amount || 0), dueDay: item.due_day }))
+  const recurring = getRecurringObligations({ expenses: fixedExpenses, resolutions: fixedExpenseOccurrences,
+    transactions: rows, start: monthStart, end: monthEnd, currency })
+  issues.push(...recurring.issues)
+  const recurringItems = recurring.occurrences.map(item => ({ ...item, category: item.category || 'Other', dueDay: item.due_day }))
   const resolvedTransactionIds = new Set(resolved.map(row => row.transaction_id).filter(Boolean))
   const upcomingTransactions = monthRows.filter(row => row.obligationAmount > 0 && !resolvedTransactionIds.has(row.id)
-    && !resolvedFixedIds.has(row.recurring_expense_id || row.fixed_expense_id))
+    && !isRecurringOccurrenceResolved({ fixed_expense_id: row.recurring_expense_id || row.fixed_expense_id,
+      frequency: fixedExpenses.find(item => item.id === (row.recurring_expense_id || row.fixed_expense_id))?.frequency || 'monthly',
+      due_date: row.recurring_due_date || row.transaction_date }, fixedExpenseOccurrences))
   const budgetAmount = roundMoney(Math.max(0, Number(monthlyBudget) || 0))
   const fixedAmount = roundMoney(recurringItems.reduce((sum, item) => sum + item.amount, 0))
   const spent = roundMoney(spentAmount)

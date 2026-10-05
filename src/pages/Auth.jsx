@@ -4,6 +4,9 @@ import { supabase } from '../lib/supabase'
 import { useLanguage } from '../i18n/LanguageContext'
 import { getAuthErrorMessage } from '../lib/authErrorMessage'
 import PublicLanguageSelect from '../components/PublicLanguageSelect'
+import { motion, useReducedMotion } from 'framer-motion'
+import { useAuthEntrance } from '../hooks/usePublicEntrance'
+import './PublicMotion.css'
 
 const TITLE_PUNCTUATION = /[.,!?。！？…，、；：:;]/g
 
@@ -18,6 +21,8 @@ export default function Auth({ initialMode = 'login', onBack, onPasswordUpdated,
   const [oauthLoading, setOauthLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const entrance = useAuthEntrance(language, mode)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => { setMode(initialMode) }, [initialMode])
 
@@ -129,22 +134,23 @@ export default function Auth({ initialMode = 'login', onBack, onPasswordUpdated,
   const subtitle = isRecovery ? t('newPasswordCopy') : isForgot ? t('resetPasswordCopy') : isSignup ? t('signupCopy') : t('loginCopy')
 
   return (
-    <div className="auth-page" lang={language}>
+    <div className="auth-page" lang={language} ref={entrance}>
       <div className="auth-shell">
         <aside className="auth-showcase" aria-label={t('landingProductPreview')}>
-          <div className="auth-showcase-brand"><span>S</span><strong>Splitlie</strong></div>
+          <div className="public-brand-plane" data-public-shared data-flip-id="public-plane" aria-hidden="true" />
+          <div className="auth-showcase-brand" data-public-shared data-flip-id="public-logo"><span>S</span><strong>Splitlie</strong></div>
 
           <div className="auth-showcase-copy">
             <p className="auth-showcase-eyebrow">{t('landingKicker')}</p>
-            <h2>{t('landingTitle').replace(TITLE_PUNCTUATION, '')}</h2>
-            <p>{t('landingCopy')}</p>
+            <h2 data-public-shared data-flip-id="public-story">{t('landingTitle').replace(TITLE_PUNCTUATION, '')}</h2>
+            <p data-public-shared data-flip-id="public-copy">{t('landingCopy')}</p>
           </div>
 
-          <div className="auth-showcase-preview">
+          <div className="auth-showcase-preview" data-public-shared data-flip-id="public-preview">
             <span className="preview-caption">{t('examplePreview')}</span>
             <div className="auth-showcase-preview-top">
               <span className="auth-showcase-icon"><ShieldCheck size={22} /></span>
-              <div><small>{t('safeToSpend')}</small><strong>$631.93</strong></div>
+              <div><small>{t('safeToSpend')}</small><strong data-public-shared data-flip-id="public-amount">$631.93</strong></div>
             </div>
             <div className="auth-showcase-track"><i /></div>
             <div className="auth-showcase-budget"><span>{t('monthlyBudget')}</span><strong>$1,000.00</strong></div>
@@ -158,7 +164,7 @@ export default function Auth({ initialMode = 'login', onBack, onPasswordUpdated,
         </aside>
 
         <section className={`auth-card${isSignup ? ' is-signup' : ''}`}>
-        <div className="auth-card-top">
+        <div className="auth-card-top" data-auth-reveal>
           <div className="auth-brand auth-brand-mobile"><span className="auth-brand-mark">S</span><span>Splitlie</span></div>
           <PublicLanguageSelect />
           {(onBack || isForgot) && (
@@ -167,12 +173,15 @@ export default function Auth({ initialMode = 'login', onBack, onPasswordUpdated,
             </button>
           )}
         </div>
-        <p className="eyebrow">{eyebrow}</p>
-        <h1>{title.replace(TITLE_PUNCTUATION, '')}</h1>
-        <p className="auth-subtitle">{subtitle}</p>
+        <p className="eyebrow" data-auth-reveal>{eyebrow}</p>
+        <h1 tabIndex={-1} data-auth-reveal>{title.replace(TITLE_PUNCTUATION, '')}</h1>
+        <p className="auth-subtitle" data-auth-reveal>{subtitle}</p>
 
         {!isForgot && !isRecovery && (
-          <div className="auth-tabs">
+          <div className="auth-tabs" data-auth-reveal>
+            <motion.span className="auth-active-pill" aria-hidden="true" initial={false}
+              animate={{ x: isSignup ? '100%' : '0%' }}
+              transition={{ duration: reducedMotion ? 0 : .27, ease: [.22, 1, .36, 1] }} />
             <button type="button" aria-pressed={mode === 'login'} className={mode === 'login' ? 'auth-tab active' : 'auth-tab'} onClick={() => switchMode('login')}>{t('logIn')}</button>
             <button type="button" aria-pressed={mode === 'signup'} className={mode === 'signup' ? 'auth-tab active' : 'auth-tab'} onClick={() => switchMode('signup')}>{t('signUp')}</button>
           </div>
@@ -180,7 +189,7 @@ export default function Auth({ initialMode = 'login', onBack, onPasswordUpdated,
 
         {!isForgot && !isRecovery && (
           <>
-            <button className="auth-google-button" type="button" onClick={handleGoogleSignIn} disabled={loading || oauthLoading}>
+            <button className="auth-google-button" data-auth-reveal type="button" onClick={handleGoogleSignIn} disabled={loading || oauthLoading}>
               <span className="auth-google-mark" aria-hidden="true">G</span>
               {oauthLoading ? t('connectingGoogle') : t('continueWithGoogle')}
             </button>
@@ -188,7 +197,7 @@ export default function Auth({ initialMode = 'login', onBack, onPasswordUpdated,
           </>
         )}
 
-        <form onSubmit={handleSubmit} className="auth-form" aria-busy={loading || oauthLoading}>
+        <form onSubmit={handleSubmit} className="auth-form" data-auth-reveal aria-busy={loading || oauthLoading}>
           {isSignup && <label>{t('name')}<input required type="text" placeholder={t('yourName')} value={displayName} onChange={event => setDisplayName(event.target.value)} autoComplete="name" /></label>}
           {!isRecovery && <label>{t('email')}<input required type="email" inputMode="email" autoCapitalize="none" spellCheck={false} placeholder="you@example.com" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" /></label>}
           {!isForgot && <label>{isRecovery ? t('newPassword') : t('password')}<input required minLength={isRecovery || isSignup ? 6 : undefined} type="password" placeholder={t('passwordPlaceholder')} value={password} onChange={event => setPassword(event.target.value)} autoComplete={isRecovery || isSignup ? 'new-password' : 'current-password'} /></label>}
@@ -197,7 +206,8 @@ export default function Auth({ initialMode = 'login', onBack, onPasswordUpdated,
           {error && <div className="auth-message error" role="alert">{error}</div>}
           {message && <div className="auth-message success" role="status">{message}</div>}
           <button className="primary auth-submit" type="submit" disabled={loading || oauthLoading}>
-            {loading ? t('pleaseWait') : isRecovery ? t('updatePassword') : isForgot ? t('sendResetLink') : isSignup ? t('createAccountButton') : t('logIn')}
+            {loading && <span className="auth-submit-spinner" aria-hidden="true" />}
+            {loading ? t(isSignup ? 'creatingAccount' : isForgot || isRecovery ? 'pleaseWait' : 'signingIn') : isRecovery ? t('updatePassword') : isForgot ? t('sendResetLink') : isSignup ? t('createAccountButton') : t('logIn')}
           </button>
         </form>
         </section>

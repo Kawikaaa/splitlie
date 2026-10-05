@@ -1,0 +1,89 @@
+.app-shell .my-money-panel { min-width: 0; }
+.app-shell .money-heading { align-items: flex-start; gap: 24px; margin-bottom: 24px; }
+.app-shell .money-heading h2 { margin: 0 0 8px; }
+.app-shell .my-money-panel .money-help { color: #60665d; font-size: 14px; font-weight: 400; line-height: 1.6; margin: 4px 0; }
+.app-shell .money-heading > div { max-width: 65ch; }
+.app-shell .money-heading button { flex-shrink: 0; }
+.app-shell .money-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 24px 0 16px; }
+.app-shell .money-totals > div { border-top: 1px solid #e2e4de; padding-top: 16px; min-width: 0; }
+.app-shell .money-totals dt { font-size: 14px; color: #60665d; }
+.app-shell .money-totals dd { font-size: clamp(24px, 2.2vw, 36px); font-weight: 650; line-height: 1.25; margin: 8px 0 0; letter-spacing: -.025em; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.app-shell .money-empty { display: flex; gap: 16px; align-items: center; padding: 16px 0; color: #60665d; }
+.app-shell .money-empty p { margin: 0; font-size: 15px; line-height: 1.6; max-width: 65ch; }
+.app-shell .money-empty svg { flex-shrink: 0; }
+.app-shell .account-form { border-top: 1px solid #e2e4de; padding-top: 24px; margin: 24px 0; }
+.app-shell .account-form h3 { font-size: 20px; margin: 0 0 24px; }
+.app-shell .account-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.app-shell .account-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin-bottom: 16px; }
+.app-shell .account-fields label { display: grid; gap: 8px; font-size: 14px; font-weight: 600; min-width: 0; }
+.app-shell .account-fields input, .app-shell .account-fields select { width: 100%; min-width: 0; height: 48px; padding: 10px 14px; border: 1px solid #d5d9cf; border-radius: 10px; background: white; color: #171d15; font: inherit; font-size: 15px; font-weight: 400; caret-color: #315324; }
+.app-shell .account-fields input:focus-visible, .app-shell .account-fields select:focus-visible, .app-shell .my-money-panel button:focus-visible { outline: 2px solid #567336; outline-offset: 3px; }
+.app-shell .my-money-panel .money-checkbox { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; margin-top: 16px; font-weight: 400; }
+.app-shell .money-checkbox input { appearance: auto; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 0; box-shadow: none; margin: 2px 0 0; flex-shrink: 0; accent-color: #365521; }
+.app-shell .money-form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.app-shell .money-rows { list-style: none; padding: 0; margin: 24px 0 0; }
+.app-shell .money-rows li { display: flex; gap: 24px; align-items: center; padding: 20px 0; border-top: 1px solid #e2e4de; }
+.app-shell .money-row-label { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.app-shell .money-row-label h3 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
+.app-shell .money-row-amount { display: grid; text-align: right; max-width: 40%; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.app-shell .money-row-amount strong { font-size: 22px; font-weight: 650; }
+.app-shell .money-row-actions { display: flex; gap: 12px; align-items: center; }
+.app-shell .my-money-panel .money-text-button { border: 0; background: transparent; color: #415936; padding: 8px 0; font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.app-shell .my-money-panel .money-text-button:hover { color: #171d15; }
+.app-shell .my-money-panel button:disabled { opacity: .5; cursor: not-allowed; }
+.app-shell .money-error { color: #943b35; font-size: 14px; line-height: 1.6; }
+.app-shell .money-status { margin: 0; font-size: 14px; color: #415936; }
+.app-shell .money-status:empty { display: none; }
+.app-shell .money-skeleton { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.app-shell .money-skeleton span { height: 64px; border-radius: 8px; background: #ebede7; animation: money-pulse 1.4s ease-in-out infinite alternate; }
+@keyframes money-pulse { to { opacity: .55; } }
+@media (max-width: 640px) {
+  .app-shell .money-heading { flex-direction: column; gap: 12px; }
+  .app-shell .account-fields { grid-template-columns: 1fr; }
+  .app-shell .money-totals { grid-template-columns: 1fr; gap: 16px; }
+  .app-shell .money-rows li { flex-wrap: wrap; gap: 12px; }
+  .app-shell .money-row-label { flex-basis: 55%; }
+  .app-shell .money-row-actions { width: 100%; justify-content: flex-end; }
+  .app-shell .money-form-actions { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) { .app-shell .money-skeleton span { animation: none; } }
+
+.app-shell .account-wallet { display: grid; grid-template-columns: minmax(240px, 336px) minmax(0, 1fr); gap: 32px; align-items: center; padding: 16px 0 24px; }
+.app-shell .wallet-cards-column { min-width: 0; }
+.app-shell .wallet-card-stack { position: relative; width: 100%; isolation: isolate; }
+.app-shell .wallet-account-card { position: absolute; inset: 0 0 auto; width: 100%; height: var(--wallet-card-height); padding: 20px 20px 12px; border: none; border-radius: 16px; background: #17201b; color: #fff; display: flex; flex-direction: column; align-items: stretch; text-align: left; overflow: hidden; cursor: pointer; box-shadow: 0 8px 18px rgb(18 28 18 / .12); font: inherit; transition: none; }
+.app-shell .wallet-account-card:hover { filter: brightness(1.06); }
+.app-shell .wallet-account-card:focus-visible { outline: 3px solid #618442; outline-offset: 4px; }
+.app-shell .wallet-tone-1 { background: #39473b; color: #fff; }
+.app-shell .wallet-tone-2 { background: #e3e8dd; color: #1a241a; }
+.app-shell .wallet-tone-3 { background: #bdf36b; color: #182412; }
+.app-shell .wallet-card-top { display: flex; justify-content: space-between; gap: 16px; font-size: 13px; font-weight: 600; align-items: center; }
+.app-shell .wallet-card-top > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-shell .wallet-card-middle { display: grid; gap: 8px; margin: auto 0; }
+.app-shell .wallet-card-middle > span { font-size: 12px; opacity: .85; }
+.app-shell .wallet-card-middle strong { font-size: 32px; line-height: 1.2; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.app-shell .wallet-card-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-shell .wallet-switcher { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; }
+.app-shell .wallet-switcher span { font-size: 13px; color: #60665d; font-variant-numeric: tabular-nums; }
+.app-shell .wallet-switcher .icon-button { width: 40px; height: 40px; padding: 10px; }
+.app-shell .wallet-account-detail { min-width: 0; overflow-wrap: anywhere; }
+.app-shell .wallet-account-detail h3 { font-size: 24px; line-height: 1.3; margin: 0 0 12px; letter-spacing: -.02em; }
+.app-shell .wallet-detail-actions { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-top: 24px; }
+.app-shell .wallet-total-assets { grid-template-columns: 1.4fr 1fr 1fr; align-items: start; }
+.app-shell .wallet-total-assets > div:first-child dd { font-size: 40px; }
+@media (max-width: 900px) { .app-shell .account-wallet { grid-template-columns: 1fr; gap: 24px; } .app-shell .wallet-cards-column { width: min(100%, 336px); justify-self: center; } }
+@media (max-width: 640px) { .app-shell .wallet-total-assets { grid-template-columns: 1fr; } .app-shell .wallet-account-card { padding: 20px 20px 12px; } .app-shell .wallet-card-middle strong { font-size: 28px; } .app-shell .wallet-total-assets > div:first-child dd { font-size: 36px; } }
+
+.app-shell .account-editor-backdrop { padding: 20px; z-index: 100; }
+.app-shell .account-modal { width: min(100%, 640px); padding: 24px; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgb(18 28 18 / .18); }
+.app-shell .account-modal .modal-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.app-shell .account-modal .modal-heading h2 { margin: 0; font-size: 24px; letter-spacing: -.025em; }
+.app-shell .account-modal .account-form { margin: 0; padding: 0; border: 0; }
+.app-shell .account-modal .account-form .money-checkbox { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; }
+.app-shell .account-modal .money-checkbox input { margin: 2px 0 0; width: 18px; height: 18px; min-height: 0; }
+.app-shell .account-modal .money-form-actions { position: sticky; bottom: 0; z-index: 2; padding: 16px 0; border-top: 1px solid #e2e4de; background: #fff; }
+@media (max-width: 640px) {
+  .app-shell .account-editor-backdrop { padding: 12px; }
+  .app-shell .account-modal { padding: 20px; }
+  .app-shell .account-modal .money-form-actions > button { flex: 1; }
+}

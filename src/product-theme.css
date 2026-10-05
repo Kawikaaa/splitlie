@@ -2180,4 +2180,40 @@ input::placeholder, textarea::placeholder { color: var(--sl-muted); opacity: 1; 
 .pace-metrics dt { color: #62685e; font-size: 14px; line-height: 1.5; }
 .pace-metrics dd { margin: 8px 0 0; font-size: clamp(20px, 2vw, 28px); font-weight: 650; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .spending-pace-panel > .muted { margin: 24px 0 0; }
+
+/* Compact transaction editor: coherent controls rather than oversized dashboard type. */
+.transaction-editor-backdrop .transaction-modal { width: min(100%, 640px); max-height: calc(100dvh - 40px); padding: 24px; overflow: hidden; }
+.transaction-editor-backdrop .modal-heading { margin-bottom: 20px; }
+.transaction-editor-backdrop .modal-heading h2 { font-size: 24px; line-height: 1.25; }
+.transaction-editor-backdrop .transaction-form { gap: 16px; padding-right: 6px; }
+.transaction-editor-backdrop .transaction-detail-fields { gap: 16px; }
+.transaction-editor-backdrop .transaction-detail-fields label,
+.transaction-editor-backdrop .transaction-field-label { font-size: 14px; font-weight: 600; }
+.transaction-editor-backdrop .transaction-detail-fields > .type-toggle { max-width: 240px; }
+.transaction-editor-backdrop .type-toggle button { min-height: 38px; font-size: 14px; }
+.transaction-editor-backdrop .transaction-money-row { grid-template-columns: minmax(0, 1fr) 96px; gap: 12px; }
+.transaction-editor-backdrop .transaction-currency-select { min-width: 0; }
+.transaction-editor-backdrop .amount-input { min-height: 60px; padding-inline: 14px; }
+.transaction-editor-backdrop .amount-input input { min-height: 58px; font-size: 28px; font-weight: 650; }
+.transaction-editor-backdrop .amount-input > .amount-currency-code { font-size: 15px; }
+.transaction-editor-backdrop .transaction-currency-select .app-select-trigger { min-height: 60px; font-size: 14px; }
+.transaction-editor-backdrop .transaction-description-field > input,
+.transaction-editor-backdrop .form-grid input,
+.transaction-editor-backdrop .category-select-trigger { min-height: 44px; font-size: 15px; font-weight: 400; }
+.transaction-editor-backdrop .transaction-status-field { grid-template-columns: 1fr; gap: 8px; padding-top: 16px; }
+.transaction-editor-backdrop .transaction-status-field > small { grid-column: 1; }
+.transaction-editor-backdrop .modal-actions { padding-top: 16px; gap: 12px; }
+.transaction-editor-backdrop .modal-actions button { min-height: 44px; font-size: 14px; }
+.transaction-editor-backdrop .transaction-account-field { display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid var(--sl-line); }
+.transaction-editor-backdrop .transaction-account-field label { font-size: 14px; font-weight: 600; }
+.transaction-editor-backdrop .transaction-account-field select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--sl-line); border-radius: var(--sl-radius-control); background: var(--sl-surface); color: var(--sl-ink); font: inherit; font-size: 14px; }
+.transaction-editor-backdrop .transaction-account-field small { color: var(--sl-muted); font-size: 12px; line-height: 1.5; }
+.transaction-editor-backdrop .account-movement-preview { margin: 0; font-size: 14px; font-weight: 600; }
+.transaction-editor-backdrop .account-movement-preview small { display: block; margin-top: 4px; font-weight: 400; }
+@media (max-width: 520px) {
+  .transaction-editor-backdrop .transaction-modal { padding: 20px 16px; }
+  .transaction-editor-backdrop .transaction-detail-fields { grid-template-columns: minmax(0, 1fr) auto; }
+  .transaction-editor-backdrop .transaction-detail-fields > .type-toggle { grid-column: 1; grid-row: 1; }
+  .transaction-editor-backdrop .detail-collapse-toggle { grid-column: 2; grid-row: 1; font-size: 12px; }
+}
 @media (max-width: 720px) { .pace-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; } }

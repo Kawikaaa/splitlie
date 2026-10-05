@@ -22,7 +22,7 @@ export function buildSignalEngine({ analytics, result, upcomingBills = [], quali
   if (upcomingBills.length) {
     const amount = roundMoney(upcomingBills.reduce((sum, bill) => sum + Number(bill.amount), 0))
     if (Number.isFinite(amount) && amount > 0) candidates.push(make('recurring_upcoming', amount, null, amount,
-      { count: upcomingBills.length, bills: upcomingBills.map(bill => ({ id: bill.id, name: bill.name, dueDate: bill.due_date })) }))
+      { count: upcomingBills.length, bills: upcomingBills.map(bill => ({ id: bill.occurrence_key || bill.id, name: bill.name, dueDate: bill.due_date })) }))
   }
   const signals = candidates.map(signal => ({
     ...signal, id: `${signal.type}:${signal.category || 'all'}:${signal.timePeriod.start}`,

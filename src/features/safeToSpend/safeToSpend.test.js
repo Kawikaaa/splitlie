@@ -58,7 +58,7 @@ test('upcoming bills exclude inactive, resolved and not-yet-started expenses', (
     { id: 'inactive', name: 'Old plan', due_day: 26, active: false },
     { id: 'future', name: 'Future', due_day: 26, active: true, starts_on: '2026-10-01' },
     { id: 'resolved', name: 'Rent', due_day: 25, active: true },
-  ], [{ fixed_expense_id: 'resolved' }], '2026-09', new Date('2026-09-24T12:00:00'))
+  ], [{ fixed_expense_id: 'resolved', status: 'skipped', occurrence_month: '2026-09-01' }], '2026-09', new Date('2026-09-24T12:00:00'))
 
   assert.deepEqual(bills.map((item) => item.id), ['active'])
 })

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "node src/features/insights/weeklyCheckins.test.js && node src/utils/overviewLoadState.test.js && node src/features/financial/financialEngine.test.js && node src/features/insights/signalEngine.test.js && node src/features/transactions/quickTransactionParser.test.js && node src/features/insights/personalAnalytics.test.js && node src/features/safeToSpend/safeToSpend.test.js && node src/lib/authErrorMessage.test.js && node src/lib/profileDisplayName.test.js && node src/i18n/additionalLocales.test.js && node src/utils/spaceMemberCounts.test.js",
+    "test": "node src/features/accounts/accountEngine.test.js && node src/features/insights/weeklyCheckins.test.js && node src/utils/overviewLoadState.test.js && node src/features/financial/financialEngine.test.js && node src/features/financial/recurringEngine.test.js && node src/features/insights/signalEngine.test.js && node src/features/transactions/quickTransactionParser.test.js && node src/features/insights/personalAnalytics.test.js && node src/features/safeToSpend/safeToSpend.test.js && node src/lib/authErrorMessage.test.js && node src/lib/profileDisplayName.test.js && node src/i18n/additionalLocales.test.js && node src/utils/spaceMemberCounts.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

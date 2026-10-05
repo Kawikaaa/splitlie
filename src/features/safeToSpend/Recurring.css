@@ -1,0 +1,22 @@
+.app-shell .budget-panel .fixed-expense-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.app-shell .budget-panel .fixed-expense-form label:first-child { grid-column: 1 / -1; }
+.app-shell .fixed-expense-form select { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 11px; background: #fff; color: inherit; font: inherit; }
+.app-shell .fixed-expense-form select:disabled { color: #62695f; background: #f1f2ed; }
+.app-shell .recurring-form-help { grid-column: 1 / -1; margin: 0; }
+.app-shell .recurring-pause-help { margin: 16px 0 0; max-width: 70ch; font-size: 14px; line-height: 1.6; }
+.app-shell .budget-panel .budget-row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.app-shell .budget-panel .budget-progress-copy { min-width: 0; }
+.app-shell .budget-panel .budget-progress-copy small { display: block; margin-top: 4px; }
+.app-shell .upcoming-bill-row { grid-template-columns: 42px minmax(0, 1fr) auto; }
+.app-shell .upcoming-bill-actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.app-shell .recurring-payment-date { display: flex; flex-direction: column; gap: 6px; margin-right: auto; font-size: 12px; font-weight: 600; color: #525d50; }
+.app-shell .recurring-payment-date input { min-height: 40px; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: #151a14; padding: 6px 10px; font: inherit; font-size: 14px; }
+.app-shell .recurring-window { font-size: 14px; margin-top: 8px; }
+@media (max-width: 680px) {
+  .app-shell .budget-panel .fixed-expense-form { grid-template-columns: minmax(0, 1fr); }
+  .app-shell .budget-panel .budget-row { flex-wrap: wrap; }
+  .app-shell .budget-panel .budget-row-actions { margin-left: auto; }
+  .app-shell .upcoming-bill-row { grid-template-columns: 36px minmax(0, 1fr) auto; }
+  .app-shell .upcoming-bill-actions { grid-column: 1 / -1; flex-direction: row; }
+  .app-shell .recurring-payment-date { flex-basis: 100%; }
+}

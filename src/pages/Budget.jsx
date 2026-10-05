@@ -6,9 +6,10 @@ import BudgetPanel from '../features/safeToSpend/BudgetPanel'
 import SafeToSpendCard from '../features/safeToSpend/SafeToSpendCard'
 import SpendingPaceCard from '../features/financial/SpendingPaceCard'
 import { calculateSafeToSpend } from '../features/safeToSpend/calculateSafeToSpend'
-import { createFixedExpense, deleteFixedExpense, fetchFixedExpenses, fetchFixedExpenseOccurrences, fetchMonthlyBudgets, fetchTransactions, updateFixedExpense, upsertMonthlyBudget } from '../data/ledgerApi'
+import { createFixedExpense, deleteFixedExpense, fetchFixedExpenses, fetchFixedExpenseOccurrences, fetchMonthlyBudgets, fetchTransactions, updateFixedExpense, upsertMonthlyBudget, setFixedExpensePaused, resolveFixedExpenseOccurrenceV2 } from '../data/ledgerApi'
 import { useLanguage } from '../i18n/LanguageContext'
-import { getLocalMonthKey } from '../utils/dateKeys'
+import { getLocalDateKey, getLocalMonthKey } from '../utils/dateKeys'
+import UpcomingBillsCard, { getUpcomingBills } from '../features/safeToSpend/UpcomingBillsCard'
 
 export default function Budget({ activeSpace, user, refreshKey }) {
   const { t } = useLanguage()
@@ -18,6 +19,7 @@ export default function Budget({ activeSpace, user, refreshKey }) {
   const [fixedOccurrences, setFixedOccurrences] = useState([])
   const [selectedMonth, setSelectedMonth] = useState(() => getLocalMonthKey())
   const [actionError, setActionError] = useState('')
+  const [resolvingId, setResolvingId] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadedScope, setLoadedScope] = useState('')
   const [loadFailed, setLoadFailed] = useState(false)
@@ -70,13 +72,7 @@ export default function Budget({ activeSpace, user, refreshKey }) {
   }, [activeSpace.id, user.id, refreshKey, selectedMonth])
 
   const budget = budgets.find(item => item.category === '__TOTAL__')
-  const monthStart = `${selectedMonth}-01`
-  const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number)
-  const monthEnd = `${selectedMonth}-${String(new Date(selectedYear, selectedMonthNumber, 0).getDate()).padStart(2, '0')}`
-  const visibleFixedExpenses = fixedExpenses.filter((item) =>
-    (!item.starts_on || item.starts_on <= monthEnd) &&
-    (!item.ends_on || item.ends_on >= monthStart)
-  )
+  const bills = useMemo(() => getUpcomingBills(fixedExpenses, fixedOccurrences, selectedMonth, new Date(), true), [fixedExpenses, fixedOccurrences, selectedMonth])
   const result = useMemo(() => calculateSafeToSpend({
     transactions, monthlyBudget: budget?.amount || 0, fixedExpenses, fixedExpenseOccurrences: fixedOccurrences, currency,
     periodMonth: selectedMonth, hasPlan: Boolean(budget),
@@ -100,13 +96,22 @@ export default function Budget({ activeSpace, user, refreshKey }) {
     return runBudgetAction(() => upsertMonthlyBudget({ space_id: activeSpace.id, user_id: user.id, category: '__TOTAL__', month: `${selectedMonth}-01`, amount, currency }), 'budgetSaveError')
   }
   function addFixedExpense(expense) {
-    return runBudgetAction(() => createFixedExpense({ ...expense, space_id: activeSpace.id, user_id: user.id, currency, starts_on: `${selectedMonth}-01` }), 'fixedExpenseSaveError')
+    return runBudgetAction(() => createFixedExpense({ ...expense, space_id: activeSpace.id, user_id: user.id, currency, starts_on: expense.anchor_date || `${selectedMonth}-01` }), 'fixedExpenseSaveError')
   }
   function editFixedExpense(id, changes) {
     return runBudgetAction(() => updateFixedExpense(id, changes), 'fixedExpenseSaveError')
   }
   function removeFixedExpense(id) {
     return runBudgetAction(() => deleteFixedExpense(id), 'fixedExpenseDeleteError')
+  }
+  function togglePaused(item) {
+    return runBudgetAction(() => setFixedExpensePaused(item.id, item.active !== false, getLocalDateKey()), 'fixedExpenseSaveError')
+  }
+  async function resolveBill(bill, action, paidOn) {
+    if (resolvingId) return
+    setResolvingId(bill.occurrence_key)
+    try { await runBudgetAction(() => resolveFixedExpenseOccurrenceV2(bill.fixed_expense_id, bill.due_date, action, paidOn), 'recurringActionError') }
+    finally { setResolvingId('') }
   }
 
   return (
@@ -123,7 +128,8 @@ export default function Budget({ activeSpace, user, refreshKey }) {
         : loadFailed ? <section className="panel empty-state"><p role="alert">{actionError}</p><button className="secondary" onClick={loadAll}>{t('retry')}</button></section>
         : <>{budget && <SafeToSpendCard result={result} currency={currency} />}
           <SpendingPaceCard result={result} currency={currency} />
-          <BudgetPanel key={scope} budget={budget} fixedExpenses={visibleFixedExpenses} currency={currency} result={result} selectedMonth={selectedMonth} error={actionError} onSaveBudget={saveBudget} onAddFixed={addFixedExpense} onEditFixed={editFixedExpense} onDeleteFixed={removeFixedExpense} /></>}
+          <BudgetPanel key={scope} budget={budget} fixedExpenses={fixedExpenses} currency={currency} result={result} selectedMonth={selectedMonth} error={actionError} onSaveBudget={saveBudget} onAddFixed={addFixedExpense} onEditFixed={editFixedExpense} onDeleteFixed={removeFixedExpense} onTogglePaused={togglePaused} />
+          <UpcomingBillsCard key={`bills:${scope}`} bills={bills} currency={currency} busyId={resolvingId} onResolve={resolveBill} error={actionError} wholeMonth showManage={false} /></>}
     </div>
   )
 }

@@ -1,0 +1,42 @@
+export const recurringLocales = {
+  en: {
+    fixedExpensesCopy: 'Repeating bills such as rent, subscriptions and annual fees.',
+    recurringFrequency: 'Repeats', recurringWeekly: 'Weekly', recurringMonthly: 'Monthly', recurringYearly: 'Yearly', recurringFirstDue: 'First due date',
+    pauseRecurring: 'Pause', resumeRecurring: 'Resume', recurringPaused: 'Paused', recurringNextDate: 'Next scheduled: {date}', recurringNoneScheduled: 'No future date scheduled',
+    recurringPauseHelp: 'Pausing stops future bills, not unpaid bills already due. Resume keeps the original cycle without catch-up.',
+    recurringCycleLocked: 'The cycle is kept to preserve payment history. Create a new recurring expense to change it.',
+    recurringWindow: 'Unpaid bills due this month and in the next 14 days', recurringMonthWindow: 'Unpaid bills for the selected month', skipOccurrence: 'Skip this bill', recurringPaidOn: 'Payment date',
+  },
+  zh: {
+    fixedExpensesCopy: '重复发生的费用，例如房租、订阅和年度费用。',
+    recurringFrequency: '重复周期', recurringWeekly: '每周', recurringMonthly: '每月', recurringYearly: '每年', recurringFirstDue: '首次到期日',
+    pauseRecurring: '暂停', resumeRecurring: '恢复', recurringPaused: '已暂停', recurringNextDate: '下次计划到期：{date}', recurringNoneScheduled: '暂无未来到期日',
+    recurringPauseHelp: '暂停只停止未来账单，已到期未付款的账单保留。恢复沿原周期继续，不补算暂停期间的账单。',
+    recurringCycleLocked: '为保留付款历史，不能修改现有周期。如需更改，请新增重复费用。',
+    recurringWindow: '本月已到期及未来 14 天的未付款账单', recurringMonthWindow: '所选月份的未付款账单', skipOccurrence: '跳过本次', recurringPaidOn: '实际付款日期',
+  },
+  ja: {
+    fixedExpensesCopy: '家賃、サブスクリプション、年会費などの繰り返し支出。',
+    recurringFrequency: '繰り返し', recurringWeekly: '毎週', recurringMonthly: '毎月', recurringYearly: '毎年', recurringFirstDue: '最初の支払期日',
+    pauseRecurring: '一時停止', resumeRecurring: '再開', recurringPaused: '停止中', recurringNextDate: '次回予定：{date}', recurringNoneScheduled: '次回の予定はありません',
+    recurringPauseHelp: '停止すると今後の請求のみ止まります。期限を過ぎた未払いは残ります。再開は元の周期で続き、停止中の請求は追加しません。',
+    recurringCycleLocked: '支払履歴を保つため周期は変更できません。変更するには新しく登録してください。',
+    recurringWindow: '今月が期日または今後14日以内の未払い', recurringMonthWindow: '選択した月の未払い', skipOccurrence: '今回をスキップ', recurringPaidOn: '支払日',
+  },
+  ko: {
+    fixedExpensesCopy: '월세, 구독료, 연회비 등 반복되는 지출입니다.',
+    recurringFrequency: '반복 주기', recurringWeekly: '매주', recurringMonthly: '매월', recurringYearly: '매년', recurringFirstDue: '첫 납부일',
+    pauseRecurring: '일시 중지', resumeRecurring: '재개', recurringPaused: '중지됨', recurringNextDate: '다음 예정일: {date}', recurringNoneScheduled: '예정된 날짜 없음',
+    recurringPauseHelp: '중지하면 향후 청구만 멈추며 이미 기한이 지난 미납은 유지됩니다. 재개 시 원래 주기를 따르며 중지 기간의 청구는 추가하지 않습니다.',
+    recurringCycleLocked: '납부 기록을 유지하기 위해 주기를 변경할 수 없습니다. 변경하려면 새 반복 지출을 등록하세요.',
+    recurringWindow: '이번 달 납부일 및 향후 14일 이내의 미납', recurringMonthWindow: '선택한 달의 미납', skipOccurrence: '이번 청구 건너뛰기', recurringPaidOn: '실제 납부일',
+  },
+  es: {
+    fixedExpensesCopy: 'Gastos recurrentes como alquiler, suscripciones y cuotas anuales.',
+    recurringFrequency: 'Frecuencia', recurringWeekly: 'Semanal', recurringMonthly: 'Mensual', recurringYearly: 'Anual', recurringFirstDue: 'Primer vencimiento',
+    pauseRecurring: 'Pausar', resumeRecurring: 'Reanudar', recurringPaused: 'En pausa', recurringNextDate: 'Próxima fecha: {date}', recurringNoneScheduled: 'Sin próxima fecha prevista',
+    recurringPauseHelp: 'La pausa detiene futuros recibos, no los ya vencidos. Al reanudar se conserva el ciclo original sin recuperar recibos de la pausa.',
+    recurringCycleLocked: 'El ciclo se conserva para proteger el historial. Crea un nuevo gasto recurrente para cambiarlo.',
+    recurringWindow: 'Recibos pendientes de este mes y de los próximos 14 días', recurringMonthWindow: 'Recibos pendientes del mes seleccionado', skipOccurrence: 'Omitir este recibo', recurringPaidOn: 'Fecha del pago',
+  },
+}

@@ -45,7 +45,7 @@ import {
   fetchMonthlyBudgets,
   fetchFixedExpenses,
   fetchFixedExpenseOccurrences,
-  resolveFixedExpenseOccurrence,
+  resolveFixedExpenseOccurrenceV2,
 } from '../data/ledgerApi'
 
 function money(value, currency = 'USD') {
@@ -308,14 +308,17 @@ export default function Overview({
     setFixedOccurrences(data ?? [])
   }
 
-  async function resolveUpcomingBill(expenseId, action) {
-    setResolvingFixedId(expenseId)
+  async function resolveUpcomingBill(bill, action, paidOn) {
+    if (resolvingFixedId) return
+    setResolvingFixedId(bill.occurrence_key)
     setFixedActionError('')
-    const { error } = await resolveFixedExpenseOccurrence(expenseId, currentMonth, action)
+    let error
+    try { ({ error } = await resolveFixedExpenseOccurrenceV2(bill.fixed_expense_id, bill.due_date, action, paidOn)) }
+    catch (failure) { error = failure }
     if (error) {
       setResolvingFixedId('')
       console.error(`Could not resolve recurring expense: ${error.code || ''} ${error.message || ''}`)
-      setFixedActionError(error.message || t('recurringActionError'))
+      setFixedActionError(t('recurringActionError'))
       return
     }
     await Promise.all([loadFixedOccurrences(), loadTransactions()])
@@ -1378,6 +1381,7 @@ export default function Overview({
       {!isShared && (
         !loading && personalOverviewReady && <FinancialDataNotice quality={financialQuality} />
       )}
+
 
       {!isShared && (
         !loading && personalOverviewReady && !financialLoadFailed && <SpendingPaceCard result={safeToSpend} currency={activeSpace.currency || 'USD'} />
