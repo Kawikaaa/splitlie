@@ -120,7 +120,7 @@ test('FX adapter deduplicates currency requests, preserves provider dates and re
 function fakeClient(pages = [{ data: [], error: null }]) {
   const calls = []
   const query = {}
-  for (const method of ['from', 'select', 'eq', 'is', 'order', 'insert', 'update']) query[method] = (...args) => { calls.push([method, ...args]); return query }
+  for (const method of ['from', 'select', 'eq', 'is', 'order', 'insert', 'update', 'delete']) query[method] = (...args) => { calls.push([method, ...args]); return query }
   query.range = async (...args) => { calls.push(['range', ...args]); return pages.shift() }
   query.single = async () => ({ data: { id: 'saved' }, error: null })
   return { client: query, calls }
@@ -147,4 +147,16 @@ test('repository strips spoofed fields, protects versions and metadata-only fres
   assert.ok(calls.some(call => call[0] === 'eq' && call[1] === 'updated_at'))
   assert.throws(() => repo.update({ userId: 'owner', spaceId: 'personal', id: 'new', expectedUpdatedAt: now.toISOString(), changes: { balance_source: 'synced' } }))
   assert.throws(() => repo.update({ userId: 'owner', spaceId: 'personal', id: 'new', changes: { name: 'Lost update' } }))
+})
+
+test('account deletion requires identity, scope and version and preserves database errors', async () => {
+  const { client, calls } = fakeClient()
+  const repo = createAccountRepository(client)
+  assert.throws(() => repo.remove({ userId: 'owner', spaceId: 'personal', id: 'a' }))
+  assert.throws(() => repo.remove({ userId: '', spaceId: 'personal', id: 'a', expectedUpdatedAt: now.toISOString() }))
+  await repo.remove({ userId: 'owner', spaceId: 'personal', id: 'a', expectedUpdatedAt: now.toISOString() })
+  for (const pair of [['id', 'a'], ['user_id', 'owner'], ['space_id', 'personal'], ['updated_at', now.toISOString()]]) assert.ok(calls.some(call => call[0] === 'eq' && call[1] === pair[0] && call[2] === pair[1]))
+  assert.ok(calls.some(call => call[0] === 'delete'))
+  client.single = async () => ({ data: null, error: { code: '23503' } })
+  assert.equal((await repo.remove({ userId: 'owner', spaceId: 'personal', id: 'a', expectedUpdatedAt: now.toISOString() })).error.code, '23503')
 })

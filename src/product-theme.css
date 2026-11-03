@@ -311,6 +311,23 @@ select:focus-visible,
 .app-shell .nav-link:active { transform: scale(0.985); }
 .app-shell .nav-link.active { background: var(--sl-accent); color: var(--sl-dark); }
 
+/* Sidebar selection is a quiet marker, not a filled button. */
+.app-shell .sidebar-nav .nav-link { position: relative; }
+.app-shell .sidebar-nav .nav-link.active { background: transparent; color: #fff; }
+.app-shell .sidebar-nav .nav-link.active svg { color: inherit; }
+.app-shell .sidebar-nav .nav-link.active::before {
+  content: "";
+  position: absolute;
+  inset-inline-end: 0;
+  top: 50%;
+  width: 3px;
+  height: 22px;
+  border-radius: 2px;
+  background: var(--sl-accent);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
 .app-shell .sidebar-bottom { display: grid; gap: 12px; }
 
 .app-shell .language-switcher {
@@ -1533,10 +1550,10 @@ select:focus-visible,
 .transaction-modal .modal-actions { position: sticky; bottom: 0; z-index: 3; flex-wrap: wrap; margin: 0; padding: 16px 0 2px; border-top: 1px solid var(--sl-line); background: var(--sl-surface); }
 .modal-backdrop.transaction-editor-backdrop { padding: 16px; align-items: center; }
 .language-settings-section { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
-.language-settings-section h2 { margin: 0 0 8px; font-size: 22px; }
+.language-settings-section h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-size: 22px; }
 .language-settings-section p { margin: 0; }
 .language-settings-copy { min-width: 0; display: flex; align-items: center; gap: 16px; }
-.language-settings-icon { flex: 0 0 44px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--sl-radius-control); background: var(--sl-surface-muted); color: var(--sl-ink); }
+.language-settings-icon { flex: 0 0 22px; width: 22px; height: 22px; color: var(--sl-ink); }
 .language-settings-section > .app-select { flex: 0 0 240px; }
 @media (max-width: 520px) {
   .transaction-modal { padding: 20px 16px; }
@@ -2182,6 +2199,113 @@ input::placeholder, textarea::placeholder { color: var(--sl-muted); opacity: 1; 
 .spending-pace-panel > .muted { margin: 24px 0 0; }
 
 /* Compact transaction editor: coherent controls rather than oversized dashboard type. */
+.transaction-editor-backdrop .transaction-modal.transaction-entry-modal {
+  width: min(100%, 800px);
+  padding: 24px 32px 0;
+  border-radius: 20px;
+  background: var(--sl-surface);
+}
+.transaction-editor-backdrop .transaction-entry-modal .modal-heading { margin-bottom: 24px; }
+.transaction-editor-backdrop .transaction-entry-modal .modal-heading h2 { font-size: 30px; line-height: 1.2; }
+.transaction-editor-backdrop .transaction-entry-modal .modal-heading .icon-button { width: 44px; height: 44px; min-height: 44px; background: transparent; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-form { display: flex; flex-direction: column; flex: 1; overflow: hidden; padding: 0; gap: 0; }
+.transaction-entry-modal .transaction-form-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; overflow-anchor: none; scrollbar-width: none; display: flex; flex-direction: column; gap: 24px; padding-bottom: 24px; }
+.transaction-entry-modal .transaction-form-content::-webkit-scrollbar { display: none; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-detail-fields { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px 16px; }
+.transaction-entry-modal .transaction-detail-heading { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.transaction-entry-modal .transaction-detail-heading > strong { font-size: 18px; font-weight: 650; }
+.transaction-entry-modal .transaction-detail-heading .transaction-quick-mode { font-size: 13px; padding: 8px; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-detail-fields > .transaction-detail-heading { grid-column: 1; grid-row: 1; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-detail-fields > label { gap: 8px; font-size: 13px; font-weight: 500; color: var(--sl-muted); }
+.transaction-entry-modal .transaction-detail-fields .form-grid > label { font-size: 13px; font-weight: 500; color: var(--sl-muted); gap: 8px; }
+.transaction-entry-modal .transaction-detail-fields[hidden], .transaction-advanced-fields[hidden] { display: none !important; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-detail-fields > .type-toggle { grid-column: 2; grid-row: 1; width: 240px; max-width: 100%; padding: 4px; border-radius: 12px; }
+.transaction-editor-backdrop .transaction-entry-modal .type-toggle button { min-height: 44px; font-size: 15px; border-radius: 10px; transition: background-color 150ms ease, color 150ms ease; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-money-row { display: grid; grid-template-columns: minmax(0, 1fr) 112px; gap: 0; border: 1px solid transparent; border-radius: 12px; background: var(--sl-surface-subtle); align-items: center; transition: border-color 150ms ease; }
+.transaction-entry-modal .transaction-money-row:focus-within { outline: 2px solid var(--sl-accent-ink); outline-offset: -2px; }
+.transaction-editor-backdrop .transaction-entry-modal .amount-input { border: 0; background: transparent; min-height: 88px; padding: 12px 16px; box-shadow: none; }
+.transaction-editor-backdrop .transaction-entry-modal .amount-input input { border: 0; background: transparent; min-height: 62px; font-size: 44px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.03em; box-shadow: none; outline: none; padding: 0; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-currency-select { margin-right: 16px; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-currency-select .app-select-trigger { border: 0; background: var(--sl-surface-subtle); min-height: 44px; padding: 12px; gap: 8px; font-size: 15px; color: var(--sl-muted); border-radius: 10px; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-description-field > input { min-height: 52px; font-size: 16px; padding: 14px 16px; border-radius: 12px; font-weight: 400; background: var(--sl-surface-subtle); border-color: transparent; color: var(--sl-ink); }
+.transaction-editor-backdrop .transaction-entry-modal .form-grid { gap: 16px; }
+.transaction-editor-backdrop .transaction-entry-modal .form-grid input,
+.transaction-editor-backdrop .transaction-entry-modal .category-select-trigger { height: 48px; min-height: 48px; padding: 10px 14px; border-radius: 12px; font-size: 16px; background: var(--sl-surface-subtle); border-color: transparent; color: var(--sl-ink); }
+.transaction-entry-modal .category-select-trigger .category-icon { width: 28px; height: 28px; flex-basis: 28px; }
+.transaction-entry-modal .transaction-advanced-toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding: 8px 0; border: 0; border-top: 1px solid var(--sl-line); border-radius: 0; background: transparent; font-size: 14px; font-weight: 600; color: var(--sl-muted); }
+.transaction-advanced-fields { display: grid; gap: 24px; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-account-field { padding: 0; border: 0; gap: 8px; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-account-field select { min-height: 48px; padding: 12px 14px; font-size: 16px; border-radius: 12px; background: var(--sl-surface-subtle); border-color: transparent; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-account-field small,
+.transaction-editor-backdrop .transaction-entry-modal .transaction-status-field > small { font-size: 13px; line-height: 1.5; }
+.transaction-editor-backdrop .transaction-entry-modal .transaction-status-field { padding: 0; border: 0; gap: 8px; }
+.transaction-entry-modal .transaction-quick-mode { justify-self: start; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 0; color: var(--sl-muted); font-size: 14px; background: transparent; border: 0; }
+.transaction-editor-backdrop .transaction-entry-modal .modal-actions { position: static; flex: 0 0 auto; padding: 20px 32px 24px; margin: 0 -32px; background: var(--sl-surface-subtle); box-shadow: none; }
+.transaction-editor-backdrop .transaction-entry-modal .modal-actions button { min-height: 48px; padding: 12px 24px; font-size: 16px; border-radius: 10px; }
+.transaction-entry-modal .modal-actions .secondary { background: transparent; }
+.transaction-entry-modal input { transition: border-color 150ms ease; }
+/* Keep keyboard focus inside controls, clear of the scroll viewport's clip edge. */
+.transaction-editor-backdrop .transaction-entry-modal input:not([type="number"]):focus,
+.transaction-editor-backdrop .transaction-entry-modal select:focus-visible,
+.transaction-editor-backdrop .transaction-entry-modal .app-select-trigger:focus-visible,
+.transaction-editor-backdrop .transaction-entry-modal .category-select-trigger:focus-visible {
+  outline: 2px solid var(--sl-accent-ink);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+.transaction-entry-modal .app-select.open .app-select-trigger { box-shadow: none; }
+.transaction-editor-backdrop .transaction-entry-modal .quick-add-card { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.transaction-entry-modal .quick-add-heading { gap: 12px; margin-bottom: 16px; }
+.transaction-entry-modal .quick-add-heading strong { font-size: 18px; font-weight: 650; }
+.transaction-entry-modal .quick-add-heading small { color: var(--sl-muted); font-size: 14px; line-height: 1.5; }
+.transaction-entry-modal .quick-add-icon { width: 32px; height: 32px; border-radius: 0; background: transparent; color: var(--sl-accent-ink); box-shadow: none; }
+.transaction-entry-modal .quick-add-controls { grid-template-columns: minmax(0, 1fr) 48px auto; gap: 8px; }
+.transaction-editor-backdrop .transaction-entry-modal .quick-add-controls input { min-height: 56px; padding: 16px; font-size: 18px; border-radius: 12px; background: var(--sl-surface-subtle); }
+.transaction-editor-backdrop .transaction-entry-modal .quick-voice-button,
+.transaction-editor-backdrop .transaction-entry-modal .quick-apply-button { min-height: 56px; border-radius: 12px; box-shadow: none; transform: none; font-size: 15px; }
+.transaction-entry-modal .quick-add-status { margin-top: 12px; font-size: 14px; }
+.transaction-editor-backdrop .transaction-entry-modal .smart-defaults { padding: 0; gap: 24px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.transaction-entry-modal .smart-defaults-row { flex-direction: column; gap: 12px; }
+.transaction-entry-modal .smart-defaults-row > span { font-size: 13px; font-weight: 500; color: var(--sl-muted); letter-spacing: 0; text-transform: none; }
+.transaction-entry-modal .smart-category-chips { gap: 8px; }
+.transaction-entry-modal .smart-category-chips button { min-height: 40px; padding: 8px 14px; font-size: 14px; font-weight: 500; border-radius: 10px; background: var(--sl-surface-subtle); border-color: transparent; color: var(--sl-ink); }
+.transaction-entry-modal .smart-category-chips button:hover,
+.transaction-entry-modal .smart-category-chips button.active { background: var(--sl-accent-soft); border-color: var(--sl-accent-ink); color: var(--sl-ink); }
+.transaction-editor-backdrop .transaction-entry-modal .repeat-transactions { padding-top: 24px; gap: 16px; border-color: var(--sl-line); }
+.transaction-entry-modal .repeat-transactions-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+.transaction-entry-modal .repeat-transactions-heading strong { font-size: 16px; font-weight: 600; }
+.transaction-entry-modal .repeat-transactions-heading small { font-size: 13px; line-height: 1.5; color: var(--sl-muted); }
+.transaction-editor-backdrop .transaction-entry-modal .repeat-transaction-list { gap: 8px 16px; }
+.transaction-editor-backdrop .transaction-entry-modal .repeat-transaction-list > button { min-height: 64px; padding: 12px 16px; border: 0; border-radius: 10px; background: var(--sl-surface-subtle); box-shadow: none; transform: none; transition: background-color 150ms ease; }
+.transaction-entry-modal .repeat-transaction-list > button:hover { background: var(--sl-accent-soft); }
+.transaction-entry-modal .repeat-transaction-list strong { font-size: 14px; font-weight: 600; }
+.transaction-entry-modal .repeat-transaction-list small { font-size: 13px; }
+.transaction-entry-modal .repeat-transaction-list b { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.transaction-entry-modal .manual-entry-toggle { padding: 16px 0; border: 0; border-top: 1px solid var(--sl-line); border-radius: 0; background: transparent; box-shadow: none; color: var(--sl-ink); }
+.transaction-entry-modal .manual-entry-toggle strong { font-size: 15px; font-weight: 600; }
+.transaction-entry-modal .manual-entry-toggle small { font-size: 13px; line-height: 1.5; color: var(--sl-muted); }
+.transaction-entry-modal .quick-result-card { padding: 16px; border: 1px solid var(--sl-line); border-radius: 12px; background: var(--sl-surface-subtle); box-shadow: none; }
+@media (max-width: 520px) {
+  .transaction-entry-modal .quick-add-controls { grid-template-columns: minmax(0, 1fr) 48px; }
+  .transaction-editor-backdrop .transaction-entry-modal .quick-add-controls input { font-size: 16px; }
+  .transaction-entry-modal .quick-apply-button { grid-column: 1 / -1; }
+  .transaction-editor-backdrop .transaction-entry-modal .repeat-transaction-list { grid-template-columns: minmax(0, 1fr); }
+}
+html:has(.transaction-entry-modal) { scrollbar-width: none; }
+html:has(.transaction-entry-modal)::-webkit-scrollbar { display: none; }
+@media (max-width: 520px) {
+  .transaction-editor-backdrop .transaction-modal.transaction-entry-modal { padding: 20px 20px 0; max-height: calc(100dvh - 24px); }
+  .transaction-editor-backdrop .transaction-entry-modal .modal-heading h2 { font-size: 28px; }
+  .transaction-editor-backdrop .transaction-entry-modal .transaction-detail-fields { display: flex; flex-direction: column; }
+  .transaction-entry-modal .transaction-detail-heading { justify-content: space-between; }
+  .transaction-editor-backdrop .transaction-entry-modal .transaction-detail-fields > .type-toggle { width: 100%; max-width: none; }
+  .transaction-editor-backdrop .transaction-entry-modal .transaction-money-row { grid-template-columns: minmax(0, 1fr) 112px; }
+  .transaction-editor-backdrop .transaction-entry-modal .amount-input { padding: 12px 16px; min-height: 80px; }
+  .transaction-editor-backdrop .transaction-entry-modal .amount-input input { font-size: 40px; min-height: 54px; }
+  .transaction-editor-backdrop .transaction-entry-modal .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .transaction-editor-backdrop .transaction-entry-modal .modal-actions { padding-inline: 20px; margin-inline: -20px; }
+  .transaction-editor-backdrop .transaction-entry-modal .modal-actions button { padding-inline: 12px; font-size: 15px; }
+}
 .transaction-editor-backdrop .transaction-modal { width: min(100%, 640px); max-height: calc(100dvh - 40px); padding: 24px; overflow: hidden; }
 .transaction-editor-backdrop .modal-heading { margin-bottom: 20px; }
 .transaction-editor-backdrop .modal-heading h2 { font-size: 24px; line-height: 1.25; }
@@ -2210,6 +2334,13 @@ input::placeholder, textarea::placeholder { color: var(--sl-muted); opacity: 1; 
 .transaction-editor-backdrop .transaction-account-field small { color: var(--sl-muted); font-size: 12px; line-height: 1.5; }
 .transaction-editor-backdrop .account-movement-preview { margin: 0; font-size: 14px; font-weight: 600; }
 .transaction-editor-backdrop .account-movement-preview small { display: block; margin-top: 4px; font-weight: 400; }
+.refund-original { display: grid; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--sl-line); overflow-wrap: anywhere; }
+.refund-original > span, .refund-original small, .refund-help { font-size: 14px; line-height: 1.6; color: var(--sl-muted); }
+.refund-original strong { font-size: 18px; line-height: 1.4; }
+.refund-original p { margin: 0; font-size: 14px; font-weight: 600; }
+.refund-readonly { display: flex; align-items: center; min-height: 44px; font-size: 15px; font-weight: 400; }
+.refund-help { margin: 0; }
+.refund-modal .form-grid input, .refund-modal .transaction-description-field input, .refund-modal .transaction-account-field select { font-size: 16px; }
 @media (max-width: 520px) {
   .transaction-editor-backdrop .transaction-modal { padding: 20px 16px; }
   .transaction-editor-backdrop .transaction-detail-fields { grid-template-columns: minmax(0, 1fr) auto; }
@@ -2217,3 +2348,21 @@ input::placeholder, textarea::placeholder { color: var(--sl-muted); opacity: 1; 
   .transaction-editor-backdrop .detail-collapse-toggle { grid-column: 2; grid-row: 1; font-size: 12px; }
 }
 @media (max-width: 720px) { .pace-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; } }
+.transaction-entry-modal .ai-quick-entry {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  margin-block: 12px 20px; font-size: 14px; color: var(--sl-muted);
+}
+.transaction-entry-modal .ai-quick-entry[hidden] { display: none; }
+.transaction-entry-modal .ai-parse-trigger {
+  min-height: 44px; padding: 8px 12px; border: 1px solid var(--sl-line-strong);
+  border-radius: 8px; background: var(--sl-surface); color: var(--sl-ink); font: inherit;
+}
+.transaction-entry-modal .ai-parse-trigger:hover:not(:disabled) { background: var(--sl-surface-muted); }
+.transaction-entry-modal .ai-parse-trigger:disabled { opacity: .5; cursor: not-allowed; }
+.transaction-entry-modal .ai-parse-consent { flex-basis: 100%; border-top: 1px solid var(--sl-line); padding-top: 12px; }
+.transaction-entry-modal .ai-quick-entry p, .transaction-entry-modal .ai-draft-review {
+  margin: 0; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; color: var(--sl-muted);
+}
+.transaction-entry-modal .ai-parse-consent > div { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.transaction-entry-modal .ai-parse-consent button { min-height: 44px; white-space: normal; }
+.transaction-entry-modal .ai-draft-review { margin-bottom: 16px; padding-block: 12px; border-bottom: 1px solid var(--sl-line); }

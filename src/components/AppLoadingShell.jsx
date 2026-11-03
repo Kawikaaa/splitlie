@@ -1,6 +1,9 @@
+import useAppEntrance from '../hooks/useAppEntrance'
+
 export default function AppLoadingShell({ label }) {
+  const entranceRoot = useAppEntrance()
   return (
-    <div className="loading-shell" role="status" aria-live="polite" aria-label={label}>
+    <div className="loading-shell" ref={entranceRoot} role="status" aria-live="polite" aria-label={label}>
       <aside className="loading-shell-rail" aria-hidden="true">
         <span className="loading-shell-brand" />
         <span className="loading-shell-space" />

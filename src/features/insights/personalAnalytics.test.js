@@ -49,3 +49,12 @@ test('surfaces positive category changes', () => {
   assert.equal(signal.direction, 'lower')
   assert.ok(signal.absoluteChange < 0)
 })
+test('Monday preview compares Mondays rather than full historical weeks', () => {
+  const result=buildPersonalAnalytics({now:new Date('2027-01-04T12:00:00'),transactions:[expense('2027-01-04',20,'Food'),expense('2026-12-28',30,'Food'),expense('2027-01-01',999,'Food'),expense('2026-12-21',10,'Food')]})
+  assert.equal(result.weekly.comparisonDays,1);assert.equal(result.weekly.averageTotal,20);assert.equal(result.weekly.absoluteChange,0)
+})
+test('unverified conversion cannot create a lower-spending comparative signal', () => {
+  const result=buildPersonalAnalytics({now:new Date('2026-09-23T12:00:00'),transactions:[expense('2026-09-22',80,'Food',{currency:'CAD',base_currency:'USD',base_amount:null}),expense('2026-09-15',20,'Food'),expense('2026-09-08',24,'Food')]})
+  assert.equal(result.weekly.total,0);assert.equal(result.baseline.ready,false)
+  assert.ok(!result.signals.some(item=>['positive_signal','category_shift'].includes(item.type)))
+})

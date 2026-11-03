@@ -1002,9 +1002,8 @@ export default function Settings({
 
       <section className="settings-section language-settings-section" aria-labelledby="language-settings-title">
         <div className="language-settings-copy">
-          <span className="language-settings-icon" aria-hidden="true"><Globe size={24} /></span>
           <div>
-            <h2 id="language-settings-title">{t('language')}</h2>
+            <h2 id="language-settings-title">{t('language')}<Globe className="language-settings-icon" size={22} aria-hidden="true" /></h2>
             <p className="muted">{t('languageSettingsCopy')}</p>
           </div>
         </div>

@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { withSpaceMemberCounts } from '../utils/spaceMemberCounts'
+import { createPersonalEntry, updatePersonalEntry } from '../features/transactions/personalTransactionRepository.js'
+import { readSpaceTransactions } from '../features/transactions/transactionReader.js'
 
 export async function fetchSpaces(userId) {
   const result = await supabase
@@ -90,18 +92,14 @@ export async function createSettlement({
 }
 
 export async function fetchTransactions(spaceId) {
-  return supabase
-    .from('transactions')
-    .select('*')
-    .eq('space_id', spaceId)
-    .order('transaction_date', { ascending: false })
-    .order('created_at', { ascending: false })
+  return readSpaceTransactions(supabase,spaceId)
 }
 
 export async function fetchRecentTransactions(spaceId, limit = 12) {
   return supabase
     .from('transactions')
     .select('id, type, amount, currency, description, category, payment_status, transaction_date, created_at')
+    .in('type', ['expense', 'income'])
     .eq('space_id', spaceId)
     .order('transaction_date', { ascending: false })
     .order('created_at', { ascending: false })
@@ -426,9 +424,7 @@ export async function updateProfileAvatar(userId, avatarUrl) {
 export async function createPersonalTransaction(
   transaction
 ) {
-  return supabase
-    .from('transactions')
-    .insert(transaction)
+  return createPersonalEntry(supabase, transaction)
 }
 
 export async function updatePersonalTransaction({
@@ -437,13 +433,7 @@ export async function updatePersonalTransaction({
   changes,
   expectedUpdatedAt,
 }) {
-  let query = supabase
-    .from('transactions')
-    .update(changes)
-    .eq('id', transactionId)
-    .eq('space_id', spaceId)
-  if (expectedUpdatedAt) query = query.eq('updated_at', expectedUpdatedAt)
-  return query.select('id').single()
+  return updatePersonalEntry(supabase, { transactionId, spaceId, changes, expectedUpdatedAt })
 }
 
 export async function createSharedTransaction(

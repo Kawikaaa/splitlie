@@ -1,8 +1,8 @@
 import ModalSurface from './ModalSurface'
 import { useTransactionAccount } from '../features/accounts/useTransactionAccount'
 import TransactionAccountField from '../features/accounts/TransactionAccountField'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown, ChevronUp, Mic, RefreshCw, Sparkles, Square, X } from '../icons'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Camera, ChevronDown, ChevronUp, Mic, RefreshCw, Sparkles, Square, X } from '../icons'
 
 import {
   createPersonalTransaction,
@@ -39,6 +39,13 @@ import {
 import { formatCurrency } from '../services/currency/currencyFormatter'
 import { clearExchangeRateCache, getExchangeRate } from '../services/currency/exchangeRateService'
 import { parseTransactionText } from '../features/transactions/transactionTextService'
+import AiQuickEntry from '../features/transactions/AiQuickEntry'
+import ReceiptEntry from '../features/assistant/ReceiptEntry'
+import ReceiptReview from '../features/assistant/ReceiptReview'
+import { receiptPayload, mergeReceiptDetails } from '../features/assistant/receiptDraft'
+import { finishCommittedSave } from '../features/transactions/personalSaveLifecycle'
+
+const defaultPersonalTransactionApi = { create: createPersonalTransaction, update: updatePersonalTransaction }
 
 export default function TransactionModal({
   open,
@@ -47,6 +54,8 @@ export default function TransactionModal({
   user,
   transaction,
   onSaved,
+  receiptInvoke,
+  personalTransactionApi = defaultPersonalTransactionApi,
 }) {
   const { language, t } = useLanguage()
   const [type, setType] = useState('expense')
@@ -79,20 +88,33 @@ export default function TransactionModal({
     useState({})
 
   const [saving, setSaving] = useState(false)
+  const [committedTransaction, setCommittedTransaction] = useState(null)
+  const personalSubmitting = useRef(false)
   const [error, setError] = useState('')
   const [quickText, setQuickText] = useState('')
   const [quickStatus, setQuickStatus] = useState('')
   const [quickParsing, setQuickParsing] = useState(false)
+  const [aiParsing, setAiParsing] = useState(false)
+  const [receiptParsing, setReceiptParsing] = useState(false)
+  const aiBusy = aiParsing || receiptParsing
+  const [aiDraft, setAiDraft] = useState(false)
+  const [receipt, setReceipt] = useState(null)
+  const receiptOperation = useRef(null)
+  useEffect(() => { setReceipt(value => value ? { ...value, reviewed: false, exception_confirmed: false } : value) }, [amount, currency, date, description, type, paymentStatus])
   const [isListening, setIsListening] = useState(false)
-  const [detailsExpanded, setDetailsExpanded] = useState(true)
+  const [detailsExpanded, setDetailsExpanded] = useState(Boolean(transaction?.id))
+  const [entryMethod, setEntryMethod] = useState('text')
+  const receiptEntryRef = useRef(null)
+  const [advancedExpanded, setAdvancedExpanded] = useState(true)
   const [recentTransactions, setRecentTransactions] = useState([])
   const [recentLoading, setRecentLoading] = useState(false)
   const recognitionRef = useRef(null)
   const formRef = useRef(null)
 
   useEffect(() => {
-    if (open && formRef.current) formRef.current.scrollTop = 0
+    if (open && formRef.current) formRef.current.querySelector('.transaction-form-content')?.scrollTo(0, 0)
   }, [open, detailsExpanded])
+  useEffect(() => { if (open) setAdvancedExpanded(true) }, [open])
 
   const isShared =
     activeSpace?.type === 'shared'
@@ -141,7 +163,7 @@ export default function TransactionModal({
     return [...matches.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || ''
   }, [quickText, recentTransactions])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open || !activeSpace) {
       return
     }
@@ -188,13 +210,21 @@ export default function TransactionModal({
   }, [open, isEditing, activeSpace?.id, activeSpace?.type])
 
   async function initializeForm() {
+    setCommittedTransaction(null)
+    personalSubmitting.current = false
+    setReceipt(transaction?.receipt_data || null)
+    receiptOperation.current = crypto.randomUUID()
     setSaving(false)
     setError('')
     setQuickText('')
     setQuickStatus('')
     setQuickParsing(false)
+    setAiParsing(false)
+    setReceiptParsing(false)
+    setAiDraft(false)
     setIsListening(false)
-    setDetailsExpanded(true)
+    setDetailsExpanded(isEditing)
+    setEntryMethod('text')
 
     const initialValues =
       createTransactionFormValues({
@@ -667,6 +697,8 @@ export default function TransactionModal({
   }
 
   async function applyQuickTransaction(text = quickText, categoryOverride = '') {
+    if (aiBusy) return false
+    setAiDraft(false)
     if (!text.trim()) {
       setQuickStatus('empty')
       return false
@@ -704,6 +736,8 @@ export default function TransactionModal({
   }
 
   function repeatRecentTransaction(item) {
+    if (aiBusy) return
+    setAiDraft(false)
     setType(item.type === 'income' ? 'income' : 'expense')
     setAmount(String(item.amount || ''))
     setCurrency(normalizeCurrency(item.currency || activeSpace?.currency || 'USD'))
@@ -719,6 +753,7 @@ export default function TransactionModal({
   }
 
   function toggleVoiceInput() {
+    if (aiBusy) return
     if (isListening) {
       recognitionRef.current?.stop?.()
       return
@@ -762,6 +797,8 @@ export default function TransactionModal({
   ) {
     event.preventDefault()
 
+    if (saving || aiBusy) return
+
     setError('')
 
     if (
@@ -796,114 +833,51 @@ export default function TransactionModal({
     await saveSharedTransaction()
   }
 
-  async function savePersonalTransaction() {
-    if (!accountLink.ready || !accountLink.payload) { setError(t('moneyAccountUnavailable')); return }
+  async function finishPersonalSave(operation, record) {
+    const current = () => receiptOperation.current === operation
+    const refreshed = await finishCommittedSave({ refresh:onSaved, close:onClose, isCurrent:current })
+    if (!current()) return
+    personalSubmitting.current = false
+    setSaving(false)
+    if (!refreshed) setCommittedTransaction(record)
+  }
+
+  async function retryCommittedRefresh() {
+    if (!committedTransaction || personalSubmitting.current) return
+    personalSubmitting.current = true
     setSaving(true)
+    await finishPersonalSave(receiptOperation.current, committedTransaction)
+  }
 
+  async function savePersonalTransaction() {
+    if (personalSubmitting.current || committedTransaction) return
+    if (!accountLink.ready || !accountLink.payload) { setError(t('moneyAccountUnavailable')); return }
+    let receiptData
+    try { receiptData = receiptPayload(receipt?.capture_mode === 'summary' ? { ...receipt, reviewed:true } : receipt, { amount, currency, date, description }) }
+    catch { setError(t('receiptUncertain')); return }
+    if (receiptData && type !== 'expense') { setError(t('receiptUncertain')); return }
+    const operation = receiptOperation.current
+    const changes = { receipt_data:receiptData, ...accountLink.payload, paid_by:user.id, type, amount:numericAmount, currency,
+      base_amount:accountingAmount, base_currency:baseCurrency, exchange_rate:fxQuote.rate, exchange_rate_date:fxQuote.date || date,
+      conversion_status:'converted', category, description:description.trim() || null, transaction_date:date,
+      split_type:'none', payment_status:type === 'income' ? 'paid' : paymentStatus }
+    personalSubmitting.current = true
+    setSaving(true)
     let saveError = null
-
-    if (isEditing) {
-      const { error } =
-        await updatePersonalTransaction({
-          transactionId:
-            transaction.id,
-          spaceId:
-            activeSpace.id,
-          expectedUpdatedAt: transaction.updated_at,
-          changes: {
-            ...accountLink.payload,
-            paid_by:
-              user.id,
-
-            type,
-
-            amount:
-              numericAmount,
-
-            currency:
-              currency,
-
-            base_amount: accountingAmount,
-            base_currency: baseCurrency,
-            exchange_rate: fxQuote.rate,
-            exchange_rate_date: fxQuote.date || date,
-            conversion_status: 'converted',
-
-            category,
-
-            description:
-              description.trim() ||
-              null,
-
-            transaction_date:
-              date,
-
-            split_type:
-              'none',
-            payment_status: type === 'income' ? 'paid' : paymentStatus,
-          },
-        })
-
-      saveError = error
-    } else {
-      const { error } =
-        await createPersonalTransaction({
-            ...accountLink.payload,
-            space_id:
-              activeSpace.id,
-
-            created_by:
-              user.id,
-
-            paid_by:
-              user.id,
-
-            type,
-
-            amount:
-              numericAmount,
-
-            currency:
-              currency,
-
-            base_amount: accountingAmount,
-            base_currency: baseCurrency,
-            exchange_rate: fxQuote.rate,
-            exchange_rate_date: fxQuote.date || date,
-            conversion_status: 'converted',
-
-            category,
-
-            description:
-              description.trim() ||
-              null,
-
-            transaction_date:
-              date,
-
-            split_type:
-              'none',
-            payment_status: type === 'income' ? 'paid' : paymentStatus,
-        })
-
-      saveError = error
-    }
-
+    try {
+      const result = isEditing
+        ? await personalTransactionApi.update({transactionId:transaction.id,spaceId:activeSpace.id,expectedUpdatedAt:transaction.updated_at,changes})
+        : await personalTransactionApi.create({id:operation,...changes,space_id:activeSpace.id,created_by:user.id})
+      saveError = result ? result.error : new Error('EMPTY_WRITE_RESULT')
+    } catch (failure) { saveError = failure }
+    if (receiptOperation.current !== operation) return
     if (saveError) {
+      personalSubmitting.current = false
       setSaving(false)
-      setError(
-        t(saveError.message?.includes('ACCOUNT_INSUFFICIENT') ? 'moneyInsufficient' : saveError.message?.includes('ACCOUNT_ARCHIVED') ? 'moneyAccountArchivedError' : saveError.code === 'PGRST116' ? 'moneyTransactionConflict' : saveError.message?.includes('ACCOUNT_') ? 'moneyAccountUnavailable' : 'moneyTransactionSaveError')
-      )
-
+      setError(t(saveError.message?.includes('REFUND_LINKED') ? 'refundOriginalProtected' : saveError.message?.includes('ACCOUNT_INSUFFICIENT') ? 'moneyInsufficient' : saveError.message?.includes('ACCOUNT_ARCHIVED') ? 'moneyAccountArchivedError' : saveError.code === 'PGRST116' ? 'moneyTransactionConflict' : saveError.message?.includes('ACCOUNT_') ? 'moneyAccountUnavailable' : 'moneyTransactionSaveError'))
       return
     }
-
-    if (onSaved) {
-      await onSaved()
-    }
-
-    setSaving(false)
-    onClose()
+    await finishPersonalSave(operation,{amount:numericAmount,currency,description:description.trim()})
   }
 
   async function saveSharedTransaction() {
@@ -1119,7 +1093,7 @@ export default function TransactionModal({
       onMouseDown={saving ? undefined : onClose}
     >
       <ModalSurface as="div" onClose={onClose} busy={saving} aria-labelledby="transaction-editor-title"
-        className="transaction-modal"
+        className={`transaction-modal transaction-entry-modal ${receipt ? 'receipt-transaction' : ''}`}
         onMouseDown={(
           event
         ) =>
@@ -1129,7 +1103,7 @@ export default function TransactionModal({
         <div className="modal-heading">
           <div>
             <h2 id="transaction-editor-title">
-              {isEditing
+              {committedTransaction ? t('transactionCommitted') : isEditing
                 ? t('editTransaction')
                 : t('addTransaction')}
             </h2>
@@ -1146,14 +1120,25 @@ export default function TransactionModal({
           </button>
         </div>
 
-        <form
+        {committedTransaction ? <section className="transaction-save-result" role="status">
+          <strong>{formatCurrency(committedTransaction.amount,committedTransaction.currency)}</strong>
+          {committedTransaction.description && <p>{committedTransaction.description}</p>}
+          <p>{t('transactionRefreshFailed')}</p>
+          <div className="modal-actions"><button className="secondary" type="button" disabled={saving} onClick={()=>void retryCommittedRefresh()}>{saving?t('loading'):t('transactionRefreshList')}</button><button className="primary" type="button" disabled={saving} onClick={onClose}>{t('done')}</button></div>
+        </section> : <form
           ref={formRef}
           className="transaction-form"
           onSubmit={
             handleSubmit
           }
         >
-          {!isEditing && !detailsExpanded && (
+          <div className="transaction-form-content">
+          {aiDraft && <p className="ai-draft-review" role="status">{t('aiDraftReview')}</p>}
+          {!isEditing && !isShared && !detailsExpanded && <div className="transaction-entry-method" role="group" aria-label={t('receiptEntryMethod')}>
+            <button type="button" aria-pressed={entryMethod==='text'} disabled={aiBusy} onClick={()=>setEntryMethod('text')}>{t('receiptTypeEntry')}</button>
+            <button type="button" aria-pressed={entryMethod==='receipt'} disabled={quickParsing||aiParsing||isListening} onClick={()=>setEntryMethod('receipt')}><Camera size={17}/>{t('receiptPhotoEntry')}</button>
+          </div>}
+          {!isEditing && !detailsExpanded && (isShared || entryMethod==='text') && (
             <section className="quick-add-card" aria-labelledby="quick-add-title">
               <div className="quick-add-heading">
                 <span className="quick-add-icon"><Sparkles size={16} /></span>
@@ -1166,10 +1151,13 @@ export default function TransactionModal({
                 <input
                   type="text"
                   value={quickText}
+                  maxLength={300}
+                  disabled={aiBusy}
                   placeholder={t('quickAddPlaceholder')}
                   aria-label={t('quickAdd')}
                   onChange={(event) => {
                     setQuickText(event.target.value)
+                    setAiDraft(false)
                     setQuickStatus('')
                   }}
                   onKeyDown={(event) => {
@@ -1183,12 +1171,13 @@ export default function TransactionModal({
                   className={`quick-voice-button ${isListening ? 'listening' : ''}`}
                   type="button"
                   onClick={toggleVoiceInput}
+                  disabled={aiBusy}
                   aria-label={isListening ? t('stopListening') : t('voiceInput')}
                   title={isListening ? t('stopListening') : t('voiceInput')}
                 >
                   {isListening ? <Square size={16} fill="currentColor" /> : <Mic size={18} />}
                 </button>
-                <button className="quick-apply-button" type="button" disabled={quickParsing} onClick={() => void applyQuickTransaction()}>
+                <button className="quick-apply-button" type="button" disabled={quickParsing || aiBusy} onClick={() => void applyQuickTransaction()}>
                   {quickParsing ? t('analyzingTransaction') : t('fillDetails')}
                 </button>
               </div>
@@ -1200,7 +1189,39 @@ export default function TransactionModal({
             </section>
           )}
 
-          {!isEditing && !isShared && !detailsExpanded && (
+          {!isEditing && !isShared && <AiQuickEntry active={open && !detailsExpanded && entryMethod==='text'} text={quickText}
+            spaceId={activeSpace.id} fallbackCurrency={baseCurrency} disabled={quickParsing || receiptParsing || isListening || saving}
+            onBusy={setAiParsing} onResult={parsed => {
+              setType(parsed.type); setAmount(parsed.amount); setCurrency(parsed.currency)
+              setCategory(parsed.category); setDescription(parsed.description); setDate(parsed.date)
+              setQuickStatus('review'); setAiDraft(true); setDetailsExpanded(true); setError('')
+            }} />}
+
+          {!isEditing && !isShared && <ReceiptEntry ref={receiptEntryRef} invoke={receiptInvoke} embedded key={`${user?.id}:${activeSpace.id}`} active={open && !detailsExpanded && entryMethod==='receipt'} spaceId={activeSpace.id} onBusy={setReceiptParsing} disabled={quickParsing || aiParsing || isListening || saving} onDetailError={key=>setError(t(key))} onManual={value=>{
+            const samePhoto=receipt && value && receipt.image_hash===value.image_hash
+            setReceipt(samePhoto?{...receipt,recognition_status:'manual',reviewed:false}:value);setType('expense')
+            if(!samePhoto){setAmount('');setDescription('');setCurrency(baseCurrency);setDate(getToday());setCategory('Other');setPaymentStatus('paid')}
+            setDetailsExpanded(true);setAdvancedExpanded(false);setAiDraft(false);setError('')
+          }} onResult={value => {
+            if(value.capture_mode==='details' && receipt?.capture_mode==='summary') {
+              setReceipt(current=>mergeReceiptDetails(current,value));setError('');return
+            }
+            setReceipt(value); setType('expense'); setAmount(value.total || ''); setCurrency(value.currency || baseCurrency)
+            setDescription(value.merchant || ''); setDate(value.date || getToday()); setCategory('Other'); setPaymentStatus('paid')
+            setDetailsExpanded(true); setAdvancedExpanded(false); setQuickStatus('review'); setError(''); setAiDraft(false)
+          }} />}
+
+          {!detailsExpanded && quickStatus !== 'ready' && (isShared || entryMethod==='text') && (
+            <button className="manual-entry-toggle" type="button" onClick={() => setDetailsExpanded(true)}>
+              <span>
+                <strong>{t('detailedEntry')}</strong>
+                <small>{t('manualEntryHelp')}</small>
+              </span>
+              <ChevronDown size={17} />
+            </button>
+          )}
+
+          {!isEditing && !isShared && !detailsExpanded && entryMethod==='text' && (
             <section className="smart-defaults" aria-label={t('smartDefaults')}>
               <div className="smart-defaults-row">
                 <span>{t('suggestedCategories')}</span>
@@ -1209,6 +1230,7 @@ export default function TransactionModal({
                     <button
                       key={item}
                       type="button"
+                      disabled={aiBusy}
                       className={category === item ? 'active' : ''}
                       onClick={() => {
                         setCategory(item)
@@ -1232,7 +1254,7 @@ export default function TransactionModal({
                     {recentLoading ? [0, 1].map((item) => (
                       <div className="repeat-transaction-skeleton" key={item} aria-hidden="true" />
                     )) : repeatTransactions.map((item) => (
-                      <button key={item.id} type="button" onClick={() => repeatRecentTransaction(item)}>
+                      <button key={item.id} type="button" disabled={aiBusy} onClick={() => repeatRecentTransaction(item)}>
                         <span>
                           <strong>{item.description || t(getCategoryTranslationKey(item.category || 'Other'))}</strong>
                           <small>{t(getCategoryTranslationKey(item.category || 'Other'))}</small>
@@ -1246,7 +1268,7 @@ export default function TransactionModal({
             </section>
           )}
 
-          {!detailsExpanded && quickStatus === 'ready' && (
+          {!detailsExpanded && quickStatus === 'ready' && (isShared || entryMethod==='text') && (
             <section className="quick-result-card" aria-label={t('recognizedTransaction')}>
               <div className="quick-result-main">
                 <span className={`quick-result-type ${type}`}>{t(type)}</span>
@@ -1263,32 +1285,14 @@ export default function TransactionModal({
             </section>
           )}
 
-          {!detailsExpanded && quickStatus !== 'ready' && (
-            <button
-              className="manual-entry-toggle"
-              type="button"
-              onClick={() => setDetailsExpanded(true)}
-            >
-              <span>
-                <strong>{t('manualEntry')}</strong>
-                <small>{t('manualEntryHelp')}</small>
-              </span>
-              <ChevronDown size={17} />
-            </button>
-          )}
-
           <div className="transaction-detail-fields" hidden={!detailsExpanded}>
-          {!isEditing && (
-            <button
-              className="detail-collapse-toggle"
-              type="button"
-              onClick={() => setDetailsExpanded(false)}
-            >
-              {t('collapseDetails')} <ChevronUp size={15} />
-            </button>
-          )}
-
-          <div className="type-toggle">
+          <div className="transaction-detail-heading">
+            <strong>{t(receipt?'receiptCheckTransaction':'detailedEntry')}</strong>
+            {!isEditing && !receipt && <button className="transaction-quick-mode" type="button" onClick={() => setDetailsExpanded(false)}>
+              <Sparkles size={16} /> {t('quickAdd')}
+            </button>}
+          </div>
+          {!receipt && <div className="type-toggle">
             <button
               type="button"
               className={
@@ -1337,21 +1341,20 @@ export default function TransactionModal({
             >
               {t('income')}
             </button>
-          </div>
+          </div>}
 
           <label className="transaction-amount-field">
             {t('amount')}
 
             <div className="transaction-money-row">
               <div className="amount-input">
-                <span className="amount-currency-code">{currency}</span>
-
                 <input
+                  aria-label={t('amount')}
                   inputMode="decimal"
                   type="number"
                   min="0"
                   step="any"
-                  placeholder="0.00"
+                  placeholder={receipt?.capture_mode==='summary' && !receipt.total ? t('amount') : '0.00'}
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
                 />
@@ -1365,6 +1368,8 @@ export default function TransactionModal({
               />
             </div>
 
+            {receipt?.capture_mode==='summary' && !receipt.total && <small className="assistant-muted" role="status">{t(numericAmount>0?'receiptManualAmountSet':'receiptAmountMissing')}</small>}
+            {receipt?.capture_mode==='summary' && receipt.uncertain?.includes('currency') && <small className="assistant-muted">{t('receiptCurrencyDefault',{currency:baseCurrency})}</small>}
             {isCrossCurrency && <div className={`fx-preview ${fxError ? 'error' : ''}`}>
               <span>{t('spaceAccountingAmount', { currency: baseCurrency })}</span>
               <strong>
@@ -1444,7 +1449,15 @@ export default function TransactionModal({
             </label>
           </div>
 
-          {!isShared && <TransactionAccountField link={accountLink} type={type} paymentStatus={paymentStatus} />}
+          {!isShared && detailsExpanded && receipt && <TransactionAccountField link={accountLink} type={type} paymentStatus={paymentStatus} />}
+          {!isShared && receipt && <small className="assistant-muted">{t('status')}: {t(paymentStatus==='paid'?'paid':'upcoming')} · {t('receiptCheckDefaults')}</small>}
+          {!isShared && <button type="button" className="transaction-advanced-toggle" aria-expanded={advancedExpanded} aria-controls="transaction-advanced-fields" onClick={() => setAdvancedExpanded(value => !value)}>
+            {t(receipt ? 'receiptPaymentOptions' : advancedExpanded ? 'collapseDetails' : 'editDetails')}
+            {advancedExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>}
+
+          <div id="transaction-advanced-fields" className="transaction-advanced-fields" hidden={!isShared && !advancedExpanded}>
+          {!isShared && detailsExpanded && !receipt && <TransactionAccountField link={accountLink} type={type} paymentStatus={paymentStatus} />}
 
           {!isShared && type === 'expense' && (
             <div className="transaction-status-field">
@@ -1585,14 +1598,17 @@ export default function TransactionModal({
           )}
 
           </div>
+          </div>
 
-          {!isShared && !detailsExpanded && <TransactionAccountField link={accountLink} type={type} paymentStatus={paymentStatus} />}
+          {!isShared && !detailsExpanded && entryMethod==='text' && quickStatus === 'ready' && <TransactionAccountField link={accountLink} type={type} paymentStatus={paymentStatus} />}
+          {!isShared && detailsExpanded && receipt && <ReceiptReview value={receipt} onChange={setReceipt} total={amount} currency={currency} busy={receiptParsing} onCancel={()=>receiptEntryRef.current?.cancel()} onRescan={!isEditing ? ()=>{setDetailsExpanded(false);setEntryMethod('receipt');setError('')} : undefined} onDetails={!isEditing ? ()=>{if(receipt.items?.length)setReceipt(current=>({...current,capture_mode:'details',reviewed:false}));else receiptEntryRef.current?.recognizeDetails()} : undefined} />}
 
           {error && (
-            <div className="auth-message error">
+            <div className="auth-message error" role="alert">
               {error}
             </div>
           )}
+          </div>
 
           <div className="modal-actions">
             <button
@@ -1604,22 +1620,22 @@ export default function TransactionModal({
               {t('cancel')}
             </button>
 
-            <button
+            {(isShared || detailsExpanded || entryMethod==='text') && <button
               className="primary"
               type="submit"
               disabled={
-                saving ||
-                membersLoading || (!isShared && !accountLink.ready)
+                saving || aiBusy ||
+                membersLoading || (!isShared && !accountLink.ready) || (!detailsExpanded && (quickStatus !== 'ready' || (!isShared && entryMethod==='receipt'))) || Boolean(receipt && receipt.capture_mode !== 'summary' && !receipt.reviewed) || Boolean(receipt?.capture_mode==='summary' && !(numericAmount>0))
               }
             >
               {saving
                 ? t('saving')
                 : isEditing
                   ? t('saveChanges')
-                  : t('saveTransaction')}
-            </button>
+                  : t(receipt?.capture_mode==='summary' ? 'receiptConfirmSave' : 'saveTransaction')}
+            </button>}
           </div>
-        </form>
+        </form>}
       </ModalSurface>
     </div>
   )

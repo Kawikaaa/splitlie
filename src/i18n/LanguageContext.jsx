@@ -2,6 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { authMotionLocales } from './authMotionLocales'
 import { recurringLocales } from './recurringLocales'
 import { accountsLocales } from './accountsLocales'
+import { refundLocales } from './refundLocales'
+import { aiLocales } from './aiLocales'
+import { transferLocales } from './transferLocales'
+import { assistantLocales } from './assistantLocales'
 import { additionalLocales } from './additionalLocales'
 import { financialLocales } from './financialLocales'
 import { checkinLocales } from './checkinLocales'
@@ -17,6 +21,7 @@ export const getLanguageLocale = (language) => ({ en: 'en-US', zh: 'zh-CN', ja: 
 
 const translations = {
   en: {
+    detailedEntry: 'Detailed entry',
     budgetYear: 'Year',
     displayNameLabel: 'Display name', saveDisplayName: 'Save name', displayNameHelp: 'Shown in your profile and shared spaces. Your login email stays unchanged.', displayNameRequired: 'Enter a name between 1 and 50 characters.', displayNameSaved: 'Your name has been saved.', displayNameSaveError: 'Could not save your name. Check your connection and try again.', displayNameSyncError: 'Your shared-space name was saved, but account synchronization failed. Please retry Save name.',
     languageSettingsCopy: 'Choose the language used across Splitlie. Saved on this device.', profileSettings: 'Profile settings', profile: 'Profile', profileCopy: 'Upload a photo to use as your Splitlie profile picture.', uploadPhoto: 'Upload photo', cropPhoto: 'Crop profile photo', profilePhoto: 'Profile photo', cropTitle: 'Choose your avatar crop', cropCopy: 'Drag to reposition. Everything inside the circle will become your avatar.', cropKeyboard: 'Use arrow keys to reposition the image', dragAdjust: 'Drag to adjust', zoom: 'Zoom', saveAvatar: 'Save avatar', saved: 'Saved', actions: 'Actions', completedWeeksMarked: 'Completed weeks are marked on the calendar', amountPlaceholder: 'Enter an amount',
@@ -89,6 +94,7 @@ const translations = {
     invitation: 'Invitation', signInToJoin: 'Sign in to join this shared space.', signInJoinCopy: 'This invitation is tied to a Splitlie account. Sign in or create an account first, then open this invitation again.', continueToSignIn: 'Continue to sign in', joinedEyebrow: "You're in", sharedSpaceJoined: 'Shared space joined.', sharedSpaceAdded: 'The shared space has been added to your Splitlie account.', openSharedSpace: 'Open shared space', invitationExpired: 'This invitation has expired. Ask the space owner for a new link.', invitationRevoked: 'This invitation was revoked. Ask the space owner for a new link.', invitationUsed: 'This invitation has already been used.', sharedSpaceInvitation: 'Shared space invitation', joinSpaceTitle: 'Join {space}.', invitedTogether: 'You’ve been invited to share money together.', checkingInvitation: 'Checking this invitation...', invitationFor: 'This invitation is for {email} and expires {date}.', acceptInvitationCopy: 'Accept this invitation to add the shared space to your Splitlie account.', joining: 'Joining...', acceptInvitation: 'Accept invitation', invitationUnavailable: 'Invitation unavailable', notNow: 'Not now', invitationCheckError: 'Could not check this invitation.', invitationInvalidEmail: 'This invitation is invalid, or it belongs to another email address.', invitationInvalid: 'This invitation link is invalid.', invitationAcceptError: 'Could not accept this invitation.',
   },
   zh: {
+    detailedEntry: '详细录入',
     budgetYear: '年份',
     displayNameLabel: '显示用户名', saveDisplayName: '保存用户名', displayNameHelp: '用于个人资料和共享空间的显示，登录邮箱保持不变。', displayNameRequired: '请输入 1 至 50 个字符的用户名。', displayNameSaved: '用户名已保存。', displayNameSaveError: '用户名保存失败，请检查网络后重试。', displayNameSyncError: '共享空间里的用户名已保存，但账户同步失败，请再次点击保存用户名。',
     languageSettingsCopy: '选择 Splitlie 的界面语言，设置会保存在此设备。', profileSettings: '个人设置', profile: '个人资料', profileCopy: '上传一张照片作为你的 Splitlie 头像。', uploadPhoto: '上传头像', cropPhoto: '裁剪头像', profilePhoto: '头像设置', cropTitle: '调整头像范围', cropCopy: '拖动图片调整位置，圆形区域就是最终头像。', cropKeyboard: '使用方向键调整图片位置', dragAdjust: '拖动调整', zoom: '缩放', saveAvatar: '保存头像', saved: '已保存', actions: '操作', completedWeeksMarked: '完成周已在日历中标记', amountPlaceholder: '请输入金额',
@@ -170,6 +176,10 @@ Object.entries(checkinLocales).forEach(([language, copy]) => Object.assign(trans
 Object.entries(authMotionLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
 Object.entries(recurringLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
 Object.entries(accountsLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
+Object.entries(refundLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
+Object.entries(aiLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
+Object.entries(transferLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
+Object.entries(assistantLocales).forEach(([language, copy]) => Object.assign(translations[language], copy))
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {

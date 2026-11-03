@@ -1399,10 +1399,10 @@ export default function Overview({
 
       {!isShared && !loading && personalOverviewReady && !financialLoadFailed && (
         <div className="fin-analytics-grid">
-          <WeeklyRecapCard analytics={personalAnalytics} currency={activeSpace.currency || 'USD'} />
+          <WeeklyRecapCard analytics={personalAnalytics} currency={activeSpace.currency || 'USD'} spaceId={activeSpace.id} userId={user.id} />
           <SpendingBreakdownCard analytics={personalAnalytics} currency={activeSpace.currency || 'USD'} />
           <MoneySignalsPanel analytics={personalAnalytics} currency={activeSpace.currency || 'USD'} activeSpace={activeSpace} checkins={checkins} />
-          <ReflectionPanel key={`${user.id}:${activeSpace.id}:${personalAnalytics.weekly.start}`} analytics={personalAnalytics} activeSpace={activeSpace} currency={activeSpace.currency || 'USD'} checkins={checkins} />
+          <ReflectionPanel key={`${user.id}:${activeSpace.id}:${personalAnalytics.weekly.start}`} analytics={personalAnalytics} activeSpace={activeSpace} userId={user.id} currency={activeSpace.currency || 'USD'} checkins={checkins} />
         </div>
       )}
 
@@ -1440,8 +1440,7 @@ export default function Overview({
             {recentTransactions.map(
               (transaction) => {
                 const isIncome =
-                  transaction.type ===
-                  'income'
+                  transaction.type === 'income' || transaction.type === 'refund'
 
                 const description =
                   transaction.description ||
@@ -1465,6 +1464,7 @@ export default function Overview({
                       </strong>
 
                       <span>
+                        {transaction.type === 'refund' && <>{t('refund')}{' · '}</>}
                         {t(getCategoryTranslationKey(transaction.category))}
                         {' · '}
                         {

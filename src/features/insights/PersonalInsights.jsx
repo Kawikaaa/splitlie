@@ -1,5 +1,11 @@
 import ModalSurface from '../../components/ModalSurface'
+import WeeklyAssistant from '../assistant/WeeklyAssistant'
+import AssistantActionReview from '../assistant/AssistantActionReview'
 import { useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { getToday } from '../transactions/transactionUtils'
+import { shiftDay, weekRange } from '../../../supabase/functions/ai-assistant/facts.js'
+import { readReviewContext, reviewWeekOptions, reviewSnapshotFacts, weeklyEvidenceUrl } from './reviewNavigation'
 import { ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, CalendarCheck, Check, CircleAlert, ListFilter, Sparkles, X } from '../../icons'
 import CategoryIcon from '../../components/CategoryIcon'
 import { getCategoryTranslationKey } from '../../components/CategorySelect'
@@ -24,7 +30,7 @@ function InsightDialog({ children, className = '', label, onClose }) {
 export function SpendingBreakdownCard({ analytics, currency }) {
   const { t } = useLanguage()
   const rows = analytics.categoryBreakdown.slice(0, 5)
-  const max = rows[0]?.amount || 1
+  const max = Math.max(rows[0]?.amount || 0, 1)
   return (
     <section className="fin-card fin-breakdown-card">
       <div className="fin-card-heading"><div><p className="eyebrow">{t('whereItWent')}</p><h2>{t('spendingBreakdown')}</h2></div></div>
@@ -33,7 +39,7 @@ export function SpendingBreakdownCard({ analytics, currency }) {
           {rows.map((item) => (
             <div className="fin-breakdown-row" key={item.category}>
               <span className="fin-category-icon"><CategoryIcon category={item.category} /></span>
-              <div className="fin-breakdown-copy"><span>{t(getCategoryTranslationKey(item.category))}</span><div className="fin-breakdown-track"><i style={{ width: `${Math.max(5, item.amount / max * 100)}%` }} /></div></div>
+              <div className="fin-breakdown-copy"><span>{t(getCategoryTranslationKey(item.category))}</span><div className="fin-breakdown-track"><i style={{ width: `${item.amount > 0 ? Math.min(100, Math.max(5, item.amount / max * 100)) : 0}%` }} /></div></div>
               <strong>{money(item.amount, currency)}</strong>
             </div>
           ))}
@@ -43,45 +49,47 @@ export function SpendingBreakdownCard({ analytics, currency }) {
   )
 }
 
-function WeeklyRecapDetail({ analytics, currency, onClose }) {
-  const { t } = useLanguage()
-  const { weekly } = analytics
-  const maxHistory = Math.max(weekly.total, ...weekly.history.map((item) => item.value), 1)
-  return (
-    <InsightDialog label={t('weeklyRecap')} onClose={onClose}>
-      <p className="eyebrow">{t('thisWeek')}</p>
-      <h2>{t('weeklyRecap')}</h2>
-      <p className="insight-period">{weekly.start} · {weekly.end}</p>
-      <div className="insight-hero-value"><strong>{money(weekly.total, currency)}</strong><span>{t('spentThisWeek')}</span></div>
-      <p className="insight-comparison">
-        {weekly.hasReliableBaseline
-          ? t(weekly.absoluteChange <= 0 ? 'belowWeeklyAverage' : 'aboveWeeklyAverage', { amount: money(Math.abs(weekly.absoluteChange), currency) })
-          : t('buildingBaselineCopy')}
-      </p>
-      {weekly.history.length > 0 && (
-        <div className="insight-history" aria-label={t('recentWeeklyPattern')}>
-          {weekly.history.map((item, index) => <div key={item.label}><span>{t('weekNumber', { count: index + 1 })}</span><i style={{ height: `${Math.max(8, item.value / maxHistory * 100)}%` }} /><strong>{money(item.value, currency)}</strong></div>)}
-          <div className="current"><span>{t('thisWeek')}</span><i style={{ height: `${Math.max(8, weekly.total / maxHistory * 100)}%` }} /><strong>{money(weekly.total, currency)}</strong></div>
-        </div>
-      )}
-      <div className="insight-section">
-        <h3>{t('meaningfulChanges')}</h3>
-        {weekly.meaningfulChanges.length === 0 ? <p className="muted">{t(weekly.hasReliableBaseline ? 'noMeaningfulChanges' : 'buildingBaseline')}</p> : weekly.meaningfulChanges.map((item) => (
-          <div className="insight-change-row" key={item.category}>
-            <CategoryIcon category={item.category} />
-            <span><strong>{t(getCategoryTranslationKey(item.category))}</strong><small>{t(item.absoluteChange <= 0 ? 'belowRecentAverage' : 'aboveRecentAverage', { amount: money(Math.abs(item.absoluteChange), currency) })}</small></span>
-            <b>{money(item.currentValue, currency)}</b>
-          </div>
-        ))}
+function WeeklyRecapDetail({ currency, onClose, spaceId, userId, weekStart, onWeekChange, client }) {
+  const { language, t } = useLanguage()
+  const [snapshot,setSnapshot] = useState(null)
+  const today=getToday(),range=weekRange(today,weekStart),currentWeek=weekRange(today).start
+  const facts=reviewSnapshotFacts(snapshot,{userId,spaceId,language,weekStart})
+  const displayCurrency=facts?.currency || currency
+  const maxHistory=facts?Math.max(facts.net,...facts.history.map(item=>item.net),1):1
+  const comparison=facts?.comparable&&typeof facts.average==='number'
+  return <InsightDialog label={t('weeklyRecap')} onClose={onClose}>
+    <h2>{t('weeklyRecap')}</h2>
+    <label className="assistant-goal weekly-review-period">{t('assistantWeek')}<select value={weekStart} disabled={snapshot?.weekStart===weekStart&&snapshot.pending} onChange={event=>onWeekChange(event.target.value)}>
+      {reviewWeekOptions(today,weekStart).map(start=><option key={start} value={start}>{start} · {t(start===currentWeek?'assistantWeekSoFar':'assistantWeekComplete')}</option>)}
+    </select></label>
+    <p className="insight-period">{range.start} · {range.through}</p>
+    {!facts ? <div className="weekly-review-loading" role="status"><p>{t(snapshot?.error?'reviewLoadFailed':'reviewLoading')}</p></div> : <div className="weekly-review-snapshot" aria-label={t('reviewSnapshot')} aria-busy={snapshot.loading}>
+      <div className="insight-hero-value"><strong>{money(facts.net,displayCurrency)}</strong><span>{t('reviewNetSpending')}</span></div>
+      <dl className="weekly-review-totals"><div><dt>{t('reviewGross')}</dt><dd>{money(facts.gross,displayCurrency)}</dd></div><div><dt>{t('reviewRefunds')}</dt><dd>{money(facts.refunds,displayCurrency)}</dd></div></dl>
+      <p className="muted">{t('reviewCount',{count:facts.count})}</p>
+      {snapshot.error&&<p role="status">{t('reviewSummaryRetained')}</p>}
+      <Link className="assistant-text-button" to={weeklyEvidenceUrl(facts,'week',spaceId)}>{t('reviewViewEntries')} <ArrowRight size={16}/></Link>
+      <p className="insight-comparison">{comparison?t(facts.net<=facts.average?'belowWeeklyAverage':'aboveWeeklyAverage',{amount:money(Math.abs(facts.net-facts.average),displayCurrency)}):t('buildingBaselineCopy')}</p>
+      {comparison&&<small className="muted">{t('assistantMatchedDays',{days:facts.comparisonDays,count:facts.baselineWeeks})}</small>}
+      {facts.history.length>0&&facts.net>=0&&facts.history.every(item=>item.net>=0)&&<details className="weekly-review-history"><summary>{t('reviewHistory')}</summary><div className="insight-history" aria-label={t('recentWeeklyPattern')}>
+        {[...facts.history].reverse().map(item=><div key={item.start}><span>{item.start}</span><i style={{height:(item.net>0?Math.max(8,item.net/maxHistory*100):0)+'%'}}/><strong>{money(item.net,displayCurrency)}</strong></div>)}
+        <div className="current"><span>{t('reviewSnapshot')}</span><i style={{height:(facts.net>0?Math.max(8,facts.net/maxHistory*100):0)+'%'}}/><strong>{money(facts.net,displayCurrency)}</strong></div>
+      </div></details>}
+      <div className="insight-section"><h3>{t('spendingBreakdown')}</h3>
+        {facts.categories.length===0?<p className="muted">{t('reviewNoCategory')}</p>:facts.categories.slice(0,5).map(item=><Link className="insight-change-row weekly-review-category" key={item.category} to={weeklyEvidenceUrl(facts,'category:'+item.category,spaceId)}><CategoryIcon category={item.category}/><span><strong>{t(getCategoryTranslationKey(item.category))}</strong></span><b>{money(item.amount,displayCurrency)}</b><ArrowRight size={16}/></Link>)}
       </div>
-      {weekly.largestPurchase && <div className="insight-section"><h3>{t('largestPurchase')}</h3><div className="insight-transaction-row"><span><strong>{weekly.largestPurchase.description}</strong><small>{weekly.largestPurchase.date}</small></span><b>{money(weekly.largestPurchase.amount, currency)}</b></div></div>}
-    </InsightDialog>
-  )
+      {facts.largest&&<div className="insight-section"><h3>{t('largestPurchase')}</h3><Link className="insight-transaction-row weekly-review-category" to={weeklyEvidenceUrl(facts,'largest',spaceId)}><span><strong>{t(getCategoryTranslationKey(facts.largest.category))}</strong><small>{facts.largest.date}</small></span><b>{money(facts.largest.amount,displayCurrency)}</b><ArrowRight size={16}/></Link></div>}
+    </div>}
+    <WeeklyAssistant key={userId+':'+spaceId} spaceId={spaceId} userId={userId} client={client} selectedWeek={weekStart} onWeekChange={onWeekChange} hideWeekPicker onSnapshot={setSnapshot}/>
+  </InsightDialog>
 }
 
-export function WeeklyRecapCard({ analytics, currency }) {
+export function WeeklyRecapCard({ analytics, currency, spaceId, userId, client }) {
   const { t } = useLanguage()
-  const [open, setOpen] = useState(false)
+  const [params,setParams] = useSearchParams()
+  const today=getToday(),selectedWeek=readReviewContext(params,{spaceId,today})
+  const changeWeek=week=>setParams(current=>{const next=new URLSearchParams(current);next.set('reviewWeek',week);next.set('reviewSpace',spaceId);return next})
+  const closeReview=()=>setParams(current=>{const next=new URLSearchParams(current);next.delete('reviewWeek');next.delete('reviewSpace');return next},{replace:true})
   const { weekly } = analytics
   const changes = weekly.meaningfulChanges.slice(0, 3)
   return (
@@ -93,6 +101,7 @@ export function WeeklyRecapCard({ analytics, currency }) {
             ? <><span>{weekly.absoluteChange <= 0 ? <ArrowDownRight size={17} /> : <ArrowUpRight size={17} />}</span><strong>{t(weekly.absoluteChange <= 0 ? 'belowWeeklyAverage' : 'aboveWeeklyAverage', { amount: money(Math.abs(weekly.absoluteChange), currency) })}</strong></>
             : <><Sparkles size={17} /><strong>{t('buildingBaseline')}</strong></>}
         </div>
+        {weekly.hasReliableBaseline && <small className="weekly-comparison-scope">{t('assistantMatchedDays', { days: weekly.comparisonDays, count: weekly.baselineWeekCount })}</small>}
         <div className="weekly-change-list">
           {changes.length > 0 ? changes.map((item) => (
             <div className="weekly-change-row" key={item.category}>
@@ -101,9 +110,9 @@ export function WeeklyRecapCard({ analytics, currency }) {
             </div>
           )) : <p className="weekly-calm-state">{t(weekly.hasReliableBaseline ? 'noMeaningfulChanges' : 'buildingBaselineCopy')}</p>}
         </div>
-        <button className="insight-link" type="button" onClick={() => setOpen(true)}>{t('viewWeeklyRecap')} <ArrowRight size={16} /></button>
+        <button className="insight-link" type="button" onClick={() => changeWeek(shiftDay(weekRange(today).start,-7))}>{t('viewWeeklyRecap')} <ArrowRight size={16} /></button>
       </section>
-      {open && <WeeklyRecapDetail analytics={analytics} currency={currency} onClose={() => setOpen(false)} />}
+      {selectedWeek && <WeeklyRecapDetail currency={currency} spaceId={spaceId} userId={userId} weekStart={selectedWeek} onWeekChange={changeWeek} onClose={closeReview} client={client} />}
     </>
   )
 }
@@ -167,7 +176,7 @@ function MonthlyReflectionEntry({ analytics, currency }) {
   )
 }
 
-export function ReflectionPanel({ analytics, currency, checkins }) {
+export function ReflectionPanel({ analytics, currency, checkins, activeSpace, userId }) {
   const { language, t } = useLanguage()
   const { records, loading, error, saving } = checkins
   const existing = records.find(item => item.week === analytics.weekly.start)
@@ -223,6 +232,7 @@ export function ReflectionPanel({ analytics, currency, checkins }) {
           <div className="checkin-actions"><button className="checkin-context-trigger" type="button" disabled={!feeling || saving} onClick={() => setContextOpen(true)}><ListFilter size={15} aria-hidden="true" /><span>{tags.length > 0 ? t('contextSelected', { count: tags.length }) : t('addContext')}</span></button><button className="checkin-submit" type="button" disabled={!feeling || saving} onClick={finish}>{t(saving ? 'saving' : 'completeCheckIn')}</button></div>
           <button className="insight-link" type="button" onClick={() => setCalendarOpen(true)}>{t('viewStreakCalendar')} · {currentStreak} {t(currentStreak === 1 ? 'week' : 'weeks')}</button>
         </>}
+        {activeSpace?.id && userId && <AssistantActionReview userId={userId} spaceId={activeSpace.id} weekStart={analytics.weekly.start} />}
       </article>
       {contextOpen && <InsightDialog className="checkin-context-modal" label={t('whatContributedFeeling')} onClose={() => setContextOpen(false)}><div className="checkin-context-heading"><span><ListFilter size={20} aria-hidden="true" /></span><div><p className="eyebrow">{t('weeklyCheckIn')}</p><h2>{t('whatContributedFeeling')}</h2></div></div><div className="checkin-context-options">{tagOptions.map((tag) => <button className={tags.includes(tag) ? 'active' : ''} type="button" key={tag} onClick={() => toggleTag(tag)}><span>{t(tag)}</span>{tags.includes(tag) && <Check size={14} aria-hidden="true" />}</button>)}</div><div className="checkin-context-footer"><span>{t('contextSelected', { count: tags.length })}</span><button className="checkin-context-done" type="button" onClick={() => setContextOpen(false)}>{t('done')}</button></div></InsightDialog>}
       {calendarOpen && <InsightDialog label={t('viewStreakCalendar')} onClose={() => setCalendarOpen(false)}><p className="eyebrow">{t('checkInStreak')}</p><div className="checkin-month-navigation"><button className="icon-button" type="button" aria-label={t('checkinPreviousMonth')} onClick={() => setCalendarDate(new Date(calendarYear, calendarMonth - 1, 1))}><ArrowLeft size={18} /></button><h2>{calendarMonthLabel}</h2><button className="icon-button" type="button" aria-label={t('checkinNextMonth')} onClick={() => setCalendarDate(new Date(calendarYear, calendarMonth + 1, 1))}><ArrowRight size={18} /></button></div><div className="checkin-streak modal-calendar"><div><span>{t('checkInStreak')}</span><strong>{currentStreak} {t(currentStreak === 1 ? 'week' : 'weeks')}</strong></div><div className="checkin-streak-calendar" role="grid" aria-label={`${calendarMonthLabel} ${t('checkInStreak')}`}>{weekdayLabels.map((label, index) => <span className="calendar-weekday" role="columnheader" key={`${label}-${index}`}>{label}</span>)}{calendarDays.map((day, index) => { if (!day) return <span className="calendar-day empty" aria-hidden="true" key={`empty-${index}`} />; const key = dateKey(new Date(calendarYear, calendarMonth, day)); const isComplete = completedDates.has(key); const isToday = key === todayKey; return <span className={`calendar-day ${isComplete ? 'complete' : ''} ${isToday ? 'current' : ''}`} role="gridcell" key={key} aria-label={`${day} ${calendarMonthLabel}: ${isComplete ? t('checkInComplete') : t('notCompleted')}`}><b>{day}</b>{isComplete && <Check size={12} aria-hidden="true" />}</span> })}</div><small>{t('checkinDatesMarked')}</small>{records.some(item => !item.completedDate) && <small>{t('checkinUnknownDates')}</small>}</div></InsightDialog>}

@@ -166,6 +166,7 @@ quickAddAmountMissing|「昼食 $18 今日」のように金額を含めてく�
 quickAddEmpty|最初に取引内容を入力または話してください。|먼저 거래를 입력하거나 말하세요.|Primero escribe o dicta un movimiento.
 recognizedTransaction|認識した取引|인식된 거래|Movimiento reconocido
 editDetails|詳細を編集|세부 정보 수정|Editar detalles
+detailedEntry|詳細入力|상세 입력|Introducir detalles
 collapseDetails|詳細を閉じる|세부 정보 숨기기|Ocultar detalles
 manualEntry|詳細入力|추가 옵션|Más opciones
 manualEntryHelp|日付、通貨、状態などを入力します。|날짜, 통화, 상태 등의 세부 정보입니다.|Fecha, moneda, estado y otros datos.

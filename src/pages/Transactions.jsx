@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { readEvidenceFilters, evidenceReturnWeek, reviewReturnUrl, spendingEvidenceRows } from '../features/insights/reviewNavigation'
+import { getToday } from '../features/transactions/transactionUtils'
 import {
   ChevronDown,
   ChevronUp,
@@ -14,6 +17,7 @@ import {
 
 import DeleteTransactionModal from '../features/transactions/DeleteTransactionModal'
 import TransactionDetailsModal from '../features/transactions/TransactionDetailsModal'
+import RefundModal from '../features/transactions/RefundModal'
 import { getLanguageLocale, useLanguage } from '../i18n/LanguageContext'
 import CategoryIcon from '../components/CategoryIcon'
 import AppSelect from '../components/AppSelect'
@@ -59,6 +63,12 @@ export default function Transactions({
   refreshKey,
 }) {
   const { language, t } = useLanguage()
+  const [sourceParams, setSourceParams] = useSearchParams()
+  const sourceSpace = useRef(activeSpace.id)
+  useEffect(() => { if (sourceSpace.current !== activeSpace.id) { sourceSpace.current = activeSpace.id; setSourceParams({}) } }, [activeSpace.id, setSourceParams])
+  const sourceFilters = readEvidenceFilters(sourceParams)
+  const {from:sourceFrom,through:sourceThrough,entry:sourceEntry,category:sourceCategory,kind:sourceKind,basis:sourceBasis} = sourceFilters
+  const returnReviewWeek = activeSpace.type==='personal' ? evidenceReturnWeek(sourceParams,{spaceId:activeSpace.id,today:getToday()}) : null
   const locale = getLanguageLocale(language)
   const [transactions, setTransactions] = useState([])
   const [members, setMembers] = useState([])
@@ -71,11 +81,13 @@ export default function Transactions({
   const [deletingId, setDeletingId] = useState('')
   const [detailsTransaction, setDetailsTransaction] = useState(null)
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [refundTarget, setRefundTarget] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [monthFilter, setMonthFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [currencyFilter, setCurrencyFilter] = useState('all')
   const [openActionMenu, setOpenActionMenu] = useState('')
+  useEffect(()=>{if(sourceFilters.hasSource){setSearchQuery('');setMonthFilter('all');setCategoryFilter('all');setCurrencyFilter('all');setDetailsTransaction(null)}},[sourceFrom,sourceThrough,sourceEntry,sourceCategory,sourceKind,sourceBasis])
 
   const [expandedTransactions, setExpandedTransactions] =
     useState({})
@@ -97,6 +109,7 @@ export default function Transactions({
     setMonthFilter('all')
     setCategoryFilter('all')
     setCurrencyFilter('all')
+    setRefundTarget(null)
     loadPage()
   }, [activeSpace?.id, refreshKey])
 
@@ -271,6 +284,10 @@ export default function Transactions({
       return
     }
 
+    if (!isShared && transaction.type === 'refund') {
+      setRefundTarget({ originalId: transaction.parent_transaction_id, transaction })
+      return
+    }
     const transactionSplits =
       getTransactionSplits(
         transaction.id
@@ -319,7 +336,7 @@ export default function Transactions({
 
     if (error) {
       setPageError(
-        error.message || t('deleteTransactionError')
+        error.message?.includes('REFUND_LINKED') || error.code === '23503' ? t('refundOriginalProtected') : t('deleteTransactionError')
       )
       return
     }
@@ -378,10 +395,11 @@ export default function Transactions({
 
   const filteredTransactions = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
+    const evidence = sourceBasis==='spending' ? new Map(spendingEvidenceRows(transactions,activeSpace.currency).map(row=>[row.id,row])) : null
 
     return transactions.filter((transaction) => {
       const description = transaction.description || ''
-      const category = transaction.category || 'Other'
+      const category = evidence?.get(transaction.id)?.category || transaction.category || 'Other'
       const matchesSearch = !query ||
         description.toLowerCase().includes(query) ||
         category.toLowerCase().includes(query)
@@ -392,9 +410,11 @@ export default function Transactions({
       const matchesCurrency = currencyFilter === 'all' ||
         (transaction.currency || activeSpace.currency || 'USD') === currencyFilter
 
-      return matchesSearch && matchesMonth && matchesCategory && matchesCurrency
-    })
-  }, [transactions, searchQuery, monthFilter, categoryFilter, currencyFilter, activeSpace.currency])
+      const matchesSource = (!sourceFrom || transaction.transaction_date >= sourceFrom) && (!sourceThrough || transaction.transaction_date <= sourceThrough)
+        && (!sourceEntry || transaction.id === sourceEntry) && (!sourceCategory || category === sourceCategory) && (!sourceKind || transaction.type === sourceKind)
+      return matchesSearch && matchesMonth && matchesCategory && matchesCurrency && matchesSource && (!evidence || evidence.has(transaction.id))
+    }).map(transaction=>evidence?.get(transaction.id)||transaction)
+  }, [transactions, searchQuery, monthFilter, categoryFilter, currencyFilter, activeSpace.currency, sourceFrom, sourceThrough, sourceEntry, sourceCategory, sourceKind, sourceBasis])
 
   const filtersActive =
     Boolean(searchQuery.trim()) ||
@@ -433,6 +453,10 @@ export default function Transactions({
 
   return (
     <div className="page transactions-page">
+      {sourceFilters.hasSource && <section className="review-evidence-bar" aria-label={t('assistantEvidence')}>
+        <p role={sourceFilters.invalid?'status':undefined}>{sourceFilters.invalid?t('reviewInvalidFilters'):returnReviewWeek?t('reviewEvidenceScope',{start:sourceFrom,through:sourceThrough}):t('assistantEvidence')+(sourceFrom||sourceThrough?' · '+sourceFrom+' — '+sourceThrough:'')}{sourceCategory?' · '+t(getCategoryTranslationKey(sourceCategory)):''}</p>
+        <div className="review-evidence-actions">{returnReviewWeek&&<Link className="assistant-text-button" to={reviewReturnUrl(returnReviewWeek,activeSpace.id)}>{t('reviewReturn')}</Link>}<button className="secondary" type="button" onClick={()=>setSourceParams({})}>{t('clearFilters')}</button></div>
+      </section>}
       <header className="page-header">
         <div>
           <p className="eyebrow">
@@ -918,6 +942,7 @@ export default function Transactions({
                     </strong>
 
                     <span>
+                      {transaction.type === 'refund' && <>{t('refund')}{' · '}</>}
                       {t(getCategoryTranslationKey(transaction.category))}
                       {' · '}
                       {formatDate(
@@ -961,6 +986,10 @@ export default function Transactions({
                             setOpenActionMenu('')
                             editTransaction(transaction)
                           }}><Pencil size={15} /> {t('edit')}</button>
+                          {transaction.type === 'expense' && transaction.payment_status === 'paid' && <button type="button" role="menuitem" tabIndex={-1} onClick={() => {
+                            setOpenActionMenu('')
+                            setRefundTarget({ originalId: transaction.id })
+                          }}><Plus size={15} /> {t('recordRefund')}</button>}
                           <button className="danger" type="button" role="menuitem" tabIndex={-1} disabled={deletingId === transaction.id} onClick={() => {
                             setOpenActionMenu('')
                             requestDeleteTransaction(transaction)
@@ -999,6 +1028,7 @@ export default function Transactions({
         onCancel={() => setPendingDelete(null)}
         onConfirm={confirmDeleteTransaction}
       />
+      {!isShared && refundTarget && <RefundModal key={refundTarget.transaction?.id || refundTarget.originalId} {...refundTarget} activeSpace={activeSpace} user={user} onClose={() => setRefundTarget(null)} onSaved={loadPage} />}
     </div>
   )
 }

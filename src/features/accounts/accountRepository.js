@@ -45,13 +45,20 @@ export function createAccountRepository(client) {
     archive({ userId, spaceId, id, expectedUpdatedAt }) {
       scope(userId, spaceId)
       if (!id || !expectedUpdatedAt) throw new Error('The latest account version is required.')
-      // Soft removal is recoverable; no destructive DELETE path is exposed.
+      // Soft removal is recoverable.
       return client.from('financial_accounts').update({ archived_at: new Date().toISOString() }).eq('id', id).eq('user_id', userId).eq('space_id', spaceId).eq('updated_at', expectedUpdatedAt).select('*').single()
     },
     restore({ userId, spaceId, id, expectedUpdatedAt }) {
       scope(userId, spaceId)
       if (!id || !expectedUpdatedAt) throw new Error('The latest account version is required.')
       return client.from('financial_accounts').update({ archived_at: null }).eq('id', id).eq('user_id', userId).eq('space_id', spaceId).eq('updated_at', expectedUpdatedAt).select('*').single()
+    },
+    remove({ userId, spaceId, id, expectedUpdatedAt }) {
+      scope(userId, spaceId)
+      if (!id || !expectedUpdatedAt) throw new Error('The latest account version is required.')
+      // RLS enforces ownership. The transaction foreign key atomically refuses
+      // deletion of linked accounts, including concurrent transaction links.
+      return client.from('financial_accounts').delete().eq('id', id).eq('user_id', userId).eq('space_id', spaceId).eq('updated_at', expectedUpdatedAt).select('*').single()
     },
   }
 }

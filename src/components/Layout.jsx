@@ -18,6 +18,7 @@ import SpaceSwitcher from './SpaceSwitcher'
 import { useLanguage } from '../i18n/LanguageContext'
 import { fetchProfileAvatar } from '../data/ledgerApi'
 import AvatarImage from './AvatarImage'
+import useAppEntrance from '../hooks/useAppEntrance'
 
 export default function Layout({
   children,
@@ -27,6 +28,7 @@ export default function Layout({
   onAddTransaction,
 }) {
   const location = useLocation()
+  const entranceRoot = useAppEntrance()
   const { t } = useLanguage()
   const avatarStorageKey = `splitlie-avatar-${user?.id || user?.email || 'guest'}`
   const [avatarUrl, setAvatarUrl] = useState('')
@@ -106,7 +108,7 @@ export default function Layout({
     'User'
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" ref={entranceRoot}>
       <a className="skip-link" href="#main-content">{t('skipToContent')}</a>
       <aside className="sidebar">
         <div className="sidebar-top">

@@ -1,6 +1,6 @@
 export const financialLocales = {
   en: {
-    semanticTypeUnsupported: 'Refund and transfer entry is not available yet. Quick Log will not record these as income or spending.',
+    semanticTypeUnsupported: 'Record refunds from the original expense’s menu in Transactions. Transfers are not available yet. Quick Log will not misclassify these as income or spending.',
     spendingPlan: 'Spending plan', incurredSpending: 'Spending after refunds', upcomingObligations: 'Unpaid obligations', goalReserve: 'Goal reserve', safetyBuffer: 'Safety buffer', whyThisNumber: 'Why this number',
     spendingPace: 'Spending pace', periodProgress: 'Month elapsed', planUsage: 'Plan spent', currentDailyPace: 'Recorded daily average', comfortableDailyPace: 'Remaining daily pace', perDay: '{amount}/day',
     pace_faster: 'Recorded spending is faster than your plan', pace_below: 'Recorded spending is below your plan', pace_aligned: 'Recorded spending is aligned with your plan', pace_over_plan: 'Recorded spending and commitments exceed your plan', pace_no_plan: 'Set a spending plan to see your pace', pace_zero_plan: 'Your spending plan is set to zero', pace_not_started: 'This period has not started', pace_complete: 'This period is complete',
@@ -8,7 +8,7 @@ export const financialLocales = {
     budget: 'Spending plan', monthlyBudget: 'Monthly spending plan', monthlyBudgetAmount: 'Monthly spending plan', budgetPlanning: 'Spending plan', budgetPlanningCopy: 'Manage your monthly spending plan and recurring commitments', budgetMonth: 'Plan month', manageBudget: 'Manage plan', budgetNotSet: 'Spending plan not set', setYourBudget: 'Set your spending plan', setBudgetAction: 'Set plan',
   },
   zh: {
-    semanticTypeUnsupported: '退款与转账录入尚未开放，快捷记账不会将它们误记为收入或支出。',
+    semanticTypeUnsupported: '退款请到交易记录中，从原消费的操作菜单登记。转账尚未开放，快捷记账不会将它们误记为收入或支出。',
     spendingPlan: '支出计划', incurredSpending: '已发生支出（扣除退款）', upcomingObligations: '未支付费用', goalReserve: '目标预留', safetyBuffer: '安全预留', whyThisNumber: '金额如何得出',
     spendingPace: '支出节奏', periodProgress: '本月已过', planUsage: '计划已支出', currentDailyPace: '已记录日均支出', comfortableDailyPace: '剩余日均可用', perDay: '{amount}/天',
     pace_faster: '已记录支出快于计划进度', pace_below: '已记录支出低于计划进度', pace_aligned: '已记录支出与计划进度一致', pace_over_plan: '已记录支出与预留费用已超过计划', pace_no_plan: '设置支出计划后可查看支出节奏', pace_zero_plan: '支出计划已设为零', pace_not_started: '此月份尚未开始', pace_complete: '此月份已结束',
@@ -16,7 +16,7 @@ export const financialLocales = {
     budget: '支出计划', monthlyBudget: '月度支出计划', monthlyBudgetAmount: '月度支出计划', budgetPlanning: '支出计划', budgetPlanningCopy: '管理每月支出计划和重复费用', budgetMonth: '计划月份', manageBudget: '管理计划', budgetNotSet: '尚未设置支出计划', setYourBudget: '设置支出计划', setBudgetAction: '设置计划',
   },
   ja: {
-    semanticTypeUnsupported: '返金・振替の入力はまだ利用できません。クイック入力では収入や支出として記録しません。',
+    semanticTypeUnsupported: '返金は取引一覧の元の支出メニューから記録してください。振替はまだ利用できません。クイック入力では収入や支出として記録しません。',
     spendingPlan: '支出プラン', incurredSpending: '返金後の支出', upcomingObligations: '未払い費用', goalReserve: '目標の確保額', safetyBuffer: '安全余裕額', whyThisNumber: '金額の内訳',
     spendingPace: '支出ペース', periodProgress: '月の経過', planUsage: 'プランの使用率', currentDailyPace: '記録済みの日平均', comfortableDailyPace: '残りの日平均', perDay: '{amount}/日',
     pace_faster: '記録済みの支出がプランより速いペースです', pace_below: '記録済みの支出がプランを下回っています', pace_aligned: '記録済みの支出はプランに沿っています', pace_over_plan: '支出と確保額がプランを超えています', pace_no_plan: '支出プランを設定してペースを確認', pace_zero_plan: '支出プランはゼロに設定されています', pace_not_started: 'この期間はまだ始まっていません', pace_complete: 'この期間は終了しました',
@@ -24,7 +24,7 @@ export const financialLocales = {
     budget: '支出プラン', monthlyBudget: '月間支出プラン', monthlyBudgetAmount: '月間支出プラン', budgetPlanning: '支出プラン', budgetPlanningCopy: '月間支出プランと定期的な費用を管理', budgetMonth: 'プランの月', manageBudget: 'プランを管理', budgetNotSet: '支出プラン未設定', setYourBudget: '支出プランを設定', setBudgetAction: 'プランを設定',
   },
   ko: {
-    semanticTypeUnsupported: '환불 및 이체 입력은 아직 제공되지 않습니다. 빠른 입력은 이를 수입이나 지출로 기록하지 않습니다.',
+    semanticTypeUnsupported: '환불은 거래 내역의 원래 지출 메뉴에서 기록하세요. 이체는 아직 제공되지 않습니다. 빠른 입력은 이를 수입이나 지출로 기록하지 않습니다.',
     spendingPlan: '지출 계획', incurredSpending: '환불 반영 지출', upcomingObligations: '미지급 비용', goalReserve: '목표 예약금', safetyBuffer: '안전 여유금', whyThisNumber: '금액 계산 내역',
     spendingPace: '지출 속도', periodProgress: '이번 달 경과', planUsage: '계획 사용률', currentDailyPace: '기록된 일평균', comfortableDailyPace: '남은 일평균', perDay: '{amount}/일',
     pace_faster: '기록된 지출이 계획보다 빠릅니다', pace_below: '기록된 지출이 계획보다 적습니다', pace_aligned: '기록된 지출이 계획에 맞습니다', pace_over_plan: '지출과 예약 비용이 계획을 초과합니다', pace_no_plan: '지출 계획을 설정하여 속도를 확인하세요', pace_zero_plan: '지출 계획이 0으로 설정되었습니다', pace_not_started: '아직 시작하지 않은 기간입니다', pace_complete: '종료된 기간입니다',
@@ -32,7 +32,7 @@ export const financialLocales = {
     budget: '지출 계획', monthlyBudget: '월간 지출 계획', monthlyBudgetAmount: '월간 지출 계획', budgetPlanning: '지출 계획', budgetPlanningCopy: '월간 지출 계획과 정기 비용 관리', budgetMonth: '계획 월', manageBudget: '계획 관리', budgetNotSet: '지출 계획 미설정', setYourBudget: '지출 계획 설정', setBudgetAction: '계획 설정',
   },
   es: {
-    semanticTypeUnsupported: 'El registro de reembolsos y transferencias aún no está disponible. El registro rápido no los tratará como ingresos o gastos.',
+    semanticTypeUnsupported: 'Registra reembolsos desde el menú del gasto original en Transacciones. Las transferencias aún no están disponibles. El registro rápido no los tratará como ingresos o gastos.',
     spendingPlan: 'Plan de gastos', incurredSpending: 'Gastos tras reembolsos', upcomingObligations: 'Obligaciones pendientes', goalReserve: 'Reserva para metas', safetyBuffer: 'Margen de seguridad', whyThisNumber: 'Cómo se calcula',
     spendingPace: 'Ritmo de gastos', periodProgress: 'Mes transcurrido', planUsage: 'Plan gastado', currentDailyPace: 'Promedio diario registrado', comfortableDailyPace: 'Ritmo diario restante', perDay: '{amount}/día',
     pace_faster: 'Los gastos registrados avanzan más rápido que el plan', pace_below: 'Los gastos registrados están por debajo del plan', pace_aligned: 'Los gastos registrados siguen el plan', pace_over_plan: 'Los gastos y compromisos superan el plan', pace_no_plan: 'Configura un plan para ver tu ritmo', pace_zero_plan: 'El plan de gastos está en cero', pace_not_started: 'Este período aún no ha empezado', pace_complete: 'Este período ha terminado',

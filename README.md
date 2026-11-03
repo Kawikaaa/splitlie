@@ -2,6 +2,10 @@
 
 Splitlie is a personal budget and shared-expense app. Every user starts with a private Personal Space and can create shared spaces for trips, partners, roommates, or groups.
 
+## Project progress
+
+Read [PROJECT_STATUS.md](PROJECT_STATUS.md) first for project goals, current implementation status, verification limits, and the next-sprint backlog. Update it after each sprint; older planning documents remain historical references, not the current release status.
+
 ## Demo features
 
 - Email/password authentication and password recovery

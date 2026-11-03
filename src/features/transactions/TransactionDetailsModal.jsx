@@ -1,4 +1,5 @@
 import ModalSurface from '../../components/ModalSurface'
+import ReceiptReview from '../assistant/ReceiptReview'
 import { ArrowRightLeft, CalendarDays, Check, Pencil, ReceiptText, UserRound, UsersRound, X } from '../../icons'
 import { getLanguageLocale, useLanguage } from '../../i18n/LanguageContext'
 import { getCategoryTranslationKey } from '../../components/CategorySelect'
@@ -70,7 +71,7 @@ export default function TransactionDetailsModal({
 
         <div className={`transaction-details-amount ${expense ? 'expense' : 'income'}`}>
           <div>
-            <span>{hasConversion ? t('originalAmount') : expense ? t('expense') : t('income')}</span>
+            <span>{transaction.type === 'refund' ? t('refund') : hasConversion ? t('originalAmount') : expense ? t('expense') : t('income')}</span>
             <strong>{expense ? '-' : '+'}{money(transaction.amount, currency)}</strong>
           </div>
           {hasConversion && <ArrowRightLeft size={18} aria-hidden="true" />}
@@ -135,6 +136,8 @@ export default function TransactionDetailsModal({
             ))}
           </div>
         )}
+
+        {transaction.receipt_data && <ReceiptReview value={transaction.receipt_data} total={transaction.amount} currency={currency} readOnly />}
 
         {locked && (
           <p className="transaction-details-note">{t('settlementLocked')}</p>

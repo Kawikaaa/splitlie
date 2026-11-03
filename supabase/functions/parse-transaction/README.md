@@ -1,25 +1,7 @@
-# parse-transaction
+# Retired parser
 
-Authenticated Edge Function for AI-assisted transaction extraction. The browser
-never receives the model provider key.
+The local source now returns HTTP 410 and makes no model calls. It must not be
+re-enabled with the old refund-as-income prompt. The opt-in frontend uses the
+separate [ai-transaction-draft](../ai-transaction-draft/README.md) endpoint.
 
-Preferred production secret (GPT-6 Sol with strict Structured Outputs):
-
-```sh
-supabase secrets set OPENAI_API_KEY=your_key
-```
-
-`DEEPSEEK_API_KEY` remains an optional fallback when no OpenAI key is set.
-
-Deploy with JWT verification enabled (the default):
-
-```sh
-supabase functions deploy parse-transaction
-```
-
-Input fields: `text`, `today`, `language`, `fallbackCurrency`.
-
-The function validates both the signed-in Supabase user and the model's strict
-schema result before returning it. Explicit currency codes and dates are also
-rechecked by the client-side deterministic parser. It does not save transaction
-text or model output.
+This source change does not remove or redeploy any existing remote function.

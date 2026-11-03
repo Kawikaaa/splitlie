@@ -22,8 +22,8 @@ function startOfWeek(date) {
   return next
 }
 
-function expenseRows(transactions) {
-  return normalizeFinancialTransactions(transactions).rows.flatMap((item) => {
+function expenseRows(normalized) {
+  return normalized.rows.flatMap((item) => {
     if (!item.spendingAmount) return []
     return [{ ...item, accountingAmount: item.spendingAmount }]
   })
@@ -70,12 +70,14 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
   const monthKey = dayKey(today).slice(0, 7)
   const previousMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 15, 12)
   const previousMonthKey = dayKey(previousMonthDate).slice(0, 7)
-  const rows = expenseRows(transactions).filter(item => item.transaction_date <= dayKey(today))
+  const normalized = normalizeFinancialTransactions(transactions)
+  const rows = expenseRows(normalized).filter(item => item.transaction_date <= dayKey(today))
   const currentMonthRows = rows.filter((item) => item.transaction_date.slice(0, 7) === monthKey)
   const previousMonthRows = rows.filter((item) => item.transaction_date.slice(0, 7) === previousMonthKey)
   const categoryBreakdown = sumByCategory(currentMonthRows)
 
   const weekStart = startOfWeek(today)
+  const comparisonDays = (today.getDay() + 6) % 7 + 1
   const nextWeekStart = addDays(weekStart, 7)
   const inRange = (item, from, to) => {
     const date = toDate(item.transaction_date)
@@ -88,7 +90,7 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
 
   const historicalWeeks = Array.from({ length: 4 }, (_, index) => {
     const start = addDays(weekStart, -7 * (index + 1))
-    const end = addDays(start, 7)
+    const end = addDays(start, comparisonDays)
     const weekRows = rows.filter((item) => inRange(item, start, end))
     return {
       start: dayKey(start),
@@ -101,7 +103,12 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
   })
   const baselineWeeks = historicalWeeks.filter((week) => week.rows.length > 0)
   const baselineWeekCount = baselineWeeks.length
-  const hasReliableBaseline = baselineWeekCount >= SIGNAL_THRESHOLDS.minimumBaselineWeeks
+  const sourceDates = new Map(transactions.map(item => [item.id, item.transaction_date]))
+  const comparisonHasIssues = normalized.issues.some(issue => {
+    const date = sourceDates.get(issue.id)
+    return !date || (date >= dayKey(addDays(weekStart,-28)) && date <= dayKey(today))
+  })
+  const hasReliableBaseline = baselineWeekCount >= SIGNAL_THRESHOLDS.minimumBaselineWeeks && !comparisonHasIssues
   const baselineTotal = average(baselineWeeks.map((week) => week.total))
   const absoluteChange = round(currentWeekTotal - baselineTotal)
   const changePercent = hasReliableBaseline && baselineTotal > 0 ? Math.round((absoluteChange / baselineTotal) * 100) : null
@@ -195,7 +202,7 @@ export function buildPersonalAnalytics({ transactions = [], budgets = [], now = 
     categoryBreakdown,
     currentMonthTotal,
     weekly: {
-      start: period.start, end: period.end, total: currentWeekTotal, previousTotal: previousWeek?.total || 0,
+      start: period.start, end: period.end, comparisonDays, total: currentWeekTotal, previousTotal: previousWeek?.total || 0,
       averageTotal: baselineTotal, baselineWeekCount, hasReliableBaseline, absoluteChange, changePercent,
       topCategory: weekCategories[0] || null, meaningfulChanges, largestChange: meaningfulChanges[0] || null,
       largestPurchase: largestPurchase ? contribution(largestPurchase) : null,

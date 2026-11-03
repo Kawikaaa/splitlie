@@ -35,6 +35,21 @@ test('transfers, credit-card payments, exclusions, duplicates and unconverted ro
   assert.equal(totals.issues.length, 1)
 })
 
+test('a refund-only received month keeps signed spending and net without counting income or rewriting the original', () => {
+  const transactions = [expense('original', 100, '2026-09-20', { space_id: 'personal' }),
+    expense('refund', 30, '2026-10-03', { space_id: 'personal', type: 'refund', parent_transaction_id: 'original', payment_status: 'paid' })]
+  const september = summarizeFinancialTransactions(transactions, { month: '2026-09', currency: 'USD' })
+  const october = summarizeFinancialTransactions(transactions, { month: '2026-10', currency: 'USD' })
+  assert.equal(september.expenses, 100)
+  assert.equal(october.expenses, -30)
+  assert.equal(october.income, 0)
+  assert.equal(october.net, 30)
+  assert.equal(calculate({ transactions }).safeToSpend, 1030)
+  const analytics = buildPersonalAnalytics({ transactions, now: new Date('2026-10-04T12:00:00') })
+  assert.deepEqual(analytics.categoryBreakdown, [{ category: 'Food', amount: -30 }])
+  assert.equal(analytics.weekly.total, -30)
+})
+
 test('paid or skipped occurrences resolve only their month; linked recurring transactions are counted once', () => {
   const fixedExpenses = [{ id: 'rent', amount: 100, currency: 'USD' }, { id: 'phone', amount: 20, currency: 'USD' }, { id: 'old', amount: 10, currency: 'USD' }]
   const result = calculate({ fixedExpenses, transactions: [expense('rent-tx', 100, undefined, { recurring_expense_id: 'rent' })],

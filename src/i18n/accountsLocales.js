@@ -90,3 +90,31 @@ const linkCopy = {
 }
 const linkKeys = ['moneyLinkAccount', 'moneyNoAccount', 'moneyNoAccountHelp', 'moneyAccountExpense', 'moneyAccountIncome', 'moneyAccountUpcoming', 'moneyCardMovement', 'moneyAccountMovement', 'moneyAccountUnavailable', 'moneyInsufficient', 'moneyAccountArchivedError', 'moneyTransactionConflict', 'moneyTransactionSaveError', 'moneyConfirmed', 'moneyLinkedIdentity']
 for (const [language, values] of Object.entries(linkCopy)) Object.assign(accountsLocales[language], Object.fromEntries(linkKeys.map((key, index) => [key, values[index]])))
+
+const deleteKeys = ['moneyDelete', 'moneyDeleteQuestion', 'moneyDeleteCopy', 'moneyDeleted', 'moneyDeleteLinked', 'moneyDeleteError']
+const deleteCopy = {
+  en: ['Delete account', 'Delete this account?', '“{name}” and its balance will be permanently removed from My Money. This cannot be undone. Accounts with linked transactions cannot be deleted; archive them instead.', 'Account deleted', 'This account has linked transactions and cannot be deleted. Archive it to preserve the transaction history.', 'Could not delete this account. Nothing was removed. Please try again.'],
+  zh: ['删除账户', '删除此账户？', '“{name}”及其余额将从我的资金中永久移除，无法撤销。有关联交易的账户不能删除，请使用归档。', '账户已删除', '此账户有关联交易，无法删除。可以归档账户以保留交易历史。', '账户删除失败，未移除任何记录，请重试。'],
+  ja: ['口座を削除', 'この口座を削除しますか？', '「{name}」とその残高を保有資金から完全に削除します。この操作は元に戻せません。取引が連携されている口座は削除できません。代わりにアーカイブしてください。', '口座を削除しました', '取引が連携されているため削除できません。取引履歴を保持するにはアーカイブしてください。', '口座を削除できませんでした。記録は削除されていません。再試行してください。'],
+  ko: ['계좌 삭제', '이 계좌를 삭제할까요?', '“{name}” 계좌와 잔액이 내 자금에서 영구 삭제되며 되돌릴 수 없습니다. 연결된 거래가 있는 계좌는 삭제할 수 없으므로 보관하세요.', '계좌가 삭제되었습니다', '연결된 거래가 있어 삭제할 수 없습니다. 거래 내역을 유지하려면 계좌를 보관하세요.', '계좌를 삭제하지 못했습니다. 삭제된 기록은 없습니다. 다시 시도하세요.'],
+  es: ['Eliminar cuenta', '¿Eliminar esta cuenta?', '“{name}” y su saldo se eliminarán permanentemente de Mis fondos. No se puede deshacer. Las cuentas con transacciones vinculadas no se pueden eliminar; archívalas.', 'Cuenta eliminada', 'Esta cuenta tiene transacciones vinculadas y no se puede eliminar. Archívala para conservar el historial.', 'No se pudo eliminar la cuenta. No se eliminó ningún registro. Inténtalo de nuevo.'],
+}
+for (const [language, values] of Object.entries(deleteCopy)) Object.assign(accountsLocales[language], Object.fromEntries(deleteKeys.map((key, index) => [key, values[index]])))
+
+const movementHistoryCopy = {
+  en: ['Accounts with transaction or transfer history retain their currency and type. Create a new account if needed.', 'This account has transaction or transfer history and cannot be deleted. Archive it to preserve the records.'],
+  zh: ['有关联交易或转账历史的账户需要保留原币种和类型。如需更换，请新建账户。', '此账户有关联交易或转账历史，无法删除。可以归档账户以保留记录。'],
+  ja: ['取引または振替履歴のある口座は通貨と種類を保持します。必要に応じて新しい口座を作成してください。', '取引または振替履歴があるため削除できません。記録を残すにはアーカイブしてください。'],
+  ko: ['거래나 이체 내역이 있는 계좌는 기존 통화와 유형을 유지합니다. 필요하면 새 계좌를 만드세요.', '거래나 이체 내역이 있어 삭제할 수 없습니다. 기록을 유지하려면 계좌를 보관하세요.'],
+  es: ['Las cuentas con historial de transacciones o transferencias conservan su moneda y tipo. Crea otra cuenta si lo necesitas.', 'Esta cuenta tiene historial de transacciones o transferencias y no puede eliminarse. Archívala para conservar los registros.'],
+}
+for (const [language, values] of Object.entries(movementHistoryCopy)) Object.assign(accountsLocales[language], { moneyLinkedIdentity: values[0], moneyDeleteLinked: values[1] })
+
+const transferIntroCopy = {
+  en: 'Account balances are separate from your spending plan. Linked transactions and account transfers update these balances.',
+  zh: '账户余额与支出计划分开计算。关联交易和账户转账会更新余额。',
+  ja: '口座残高と支出計画は別々に計算します。連携取引と口座間振替で残高を更新します。',
+  ko: '계좌 잔액과 지출 계획은 별도로 계산합니다. 연결된 거래와 계좌 간 이체가 잔액을 갱신합니다.',
+  es: 'Los saldos están separados del plan de gastos. Las transacciones vinculadas y las transferencias actualizan los saldos.',
+}
+for (const [language, copy] of Object.entries(transferIntroCopy)) accountsLocales[language].moneyIntro = copy

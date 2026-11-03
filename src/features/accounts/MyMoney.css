@@ -34,6 +34,8 @@
 .app-shell .money-error { color: #943b35; font-size: 14px; line-height: 1.6; }
 .app-shell .money-status { margin: 0; font-size: 14px; color: #415936; }
 .app-shell .money-status:empty { display: none; }
+.app-shell .my-money-panel .money-delete-button { color: var(--sl-danger, #943b35); }
+.app-shell .money-delete-modal > p { margin: 0 0 16px; line-height: 1.7; overflow-wrap: anywhere; }
 .app-shell .money-skeleton { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .app-shell .money-skeleton span { height: 64px; border-radius: 8px; background: #ebede7; animation: money-pulse 1.4s ease-in-out infinite alternate; }
 @keyframes money-pulse { to { opacity: .55; } }
@@ -71,6 +73,37 @@
 .app-shell .wallet-detail-actions { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-top: 24px; }
 .app-shell .wallet-total-assets { grid-template-columns: 1.4fr 1fr 1fr; align-items: start; }
 .app-shell .wallet-total-assets > div:first-child dd { font-size: 40px; }
+.app-shell .money-standalone { padding: 0; background: transparent; border: 0; box-shadow: none; }
+.app-shell .money-standalone .money-heading { align-items: center; margin-bottom: 32px; }
+.app-shell .money-workspace { display: grid; grid-template-columns: minmax(0, 2.05fr) minmax(220px, .85fr); gap: 32px; align-items: start; padding: 0 0 24px; }
+.app-shell .money-standalone .account-wallet { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 32px; padding: 0; align-items: start; }
+.app-shell .money-standalone .wallet-cards-column { width: min(100%, 400px); justify-self: start; }
+.app-shell .money-standalone .wallet-info-column { min-width: 0; }
+.app-shell .money-standalone .wallet-account-detail { padding-top: 4px; }
+.app-shell .money-standalone .wallet-account-detail h3 { margin-bottom: 8px; font-size: 23px; line-height: 1.35; }
+.app-shell .money-standalone .wallet-detail-copy > .money-help { margin: 0; }
+.app-shell .money-standalone .wallet-detail-meta { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--sl-line); }
+.app-shell .money-standalone .wallet-detail-actions { margin-top: 24px; }
+.app-shell .money-standalone .wallet-detail-meta .money-help { margin: 0; line-height: 1.75; }
+.app-shell .money-standalone .wallet-total-assets { position: relative; grid-template-columns: 1fr; gap: 28px; margin: 0; }
+.app-shell .money-standalone .wallet-total-assets::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: -16px; width: 1px; background: var(--sl-line); pointer-events: none; }
+.app-shell .money-standalone .wallet-total-assets dt { line-height: 1.5; }
+.app-shell .money-standalone .wallet-total-assets dd { margin-top: 10px; line-height: 1.2; }
+.app-shell .money-standalone .wallet-total-assets > div { border-top: 1px solid var(--sl-line); padding-top: 24px; }
+.app-shell .money-standalone .wallet-total-assets > div:first-child { border-top: 0; padding-top: 0; }
+.app-shell .money-standalone .wallet-total-assets > div:first-child dd { font-size: clamp(32px, 3vw, 48px); }
+.app-shell .money-standalone .wallet-total-assets > div:not(:first-child) dd { font-size: clamp(24px, 2.2vw, 32px); }
+@media (max-width: 1100px) {
+  .app-shell .money-workspace { gap: 32px; }
+}
+@media (max-width: 900px) {
+  .app-shell .money-workspace { grid-template-columns: 1fr; gap: 40px; }
+  .app-shell .money-standalone .wallet-total-assets::before { display: none; }
+}
+@media (max-width: 640px) {
+  .app-shell .money-standalone .account-wallet { grid-template-columns: 1fr; }
+  .app-shell .money-standalone .wallet-detail-meta { grid-template-columns: 1fr; gap: 8px; }
+}
 @media (max-width: 900px) { .app-shell .account-wallet { grid-template-columns: 1fr; gap: 24px; } .app-shell .wallet-cards-column { width: min(100%, 336px); justify-self: center; } }
 @media (max-width: 640px) { .app-shell .wallet-total-assets { grid-template-columns: 1fr; } .app-shell .wallet-account-card { padding: 20px 20px 12px; } .app-shell .wallet-card-middle strong { font-size: 28px; } .app-shell .wallet-total-assets > div:first-child dd { font-size: 36px; } }
 

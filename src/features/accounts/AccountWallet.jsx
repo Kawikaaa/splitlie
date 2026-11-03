@@ -10,7 +10,7 @@ gsap.registerPlugin(useGSAP)
 const CARD_HEIGHT = 200
 const CARD_STEP = 36
 
-export default function AccountWallet({ rows, currency, busy, editing, onEdit, onArchive }) {
+export default function AccountWallet({ rows, currency, busy, editing, onEdit, onArchive, onDelete }) {
   const { t, locale } = useLanguage()
   const [selectedId, setSelectedId] = useState(rows[0]?.id)
   const root = useRef(null)
@@ -63,13 +63,19 @@ export default function AccountWallet({ rows, currency, busy, editing, onEdit, o
       </div>
       {rows.length > 1 && <div className="wallet-switcher"><button className="icon-button" onClick={() => move(-1)} aria-label={t('moneyPrevious')}><ArrowLeft size={18} /></button><span>{active + 1} / {rows.length}</span><button className="icon-button" onClick={() => move(1)} aria-label={t('moneyNext')}><ArrowRight size={18} /></button></div>}
     </div>
+    <div className="wallet-info-column">
     <div className="wallet-account-detail" aria-live="polite" aria-atomic="true">
+      <div className="wallet-detail-copy">
       <h3>{selected.name}</h3><p className="money-help">{t(`moneyType_${selected.type}`)}{!selected.include_in_total ? ` · ${t('moneyExcluded')}` : ''}</p>
+      <div className="wallet-detail-meta">
       <p className="money-help">{t('moneyConfirmed', { date: new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(selected.balance_updated_at)) })}</p>
       {selected.conversion && <p className="money-help">{t('moneyEstimate', { amount: money(selected.baseAmount, currency) })}<br />{selected.conversion.provider} · {selected.conversion.rate_date}</p>}
       {selected.currency !== currency && selected.balance > 0 && !selected.conversion && selected.include_in_total && <p className="money-error">{t('moneyRateMissing')}</p>}
+      </div>
       {selected.note && <p className="money-help">{selected.note}</p>}
-      <div className="wallet-detail-actions"><button className="secondary" disabled={busy || editing} onClick={() => onEdit(selected)}><Pencil size={18} aria-hidden="true" />{t('moneyEdit')}</button><button className="money-text-button" disabled={busy || editing} onClick={() => onArchive(selected)}>{t('moneyArchive')}</button></div>
+      </div>
+      <div className="wallet-detail-actions"><button className="secondary" disabled={busy || editing} onClick={() => onEdit(selected)}><Pencil size={18} aria-hidden="true" />{t('moneyEdit')}</button><button className="money-text-button" disabled={busy || editing} onClick={() => onArchive(selected)}>{t('moneyArchive')}</button><button className="money-text-button money-delete-button" disabled={busy || editing} onClick={() => onDelete(selected)}>{t('moneyDelete')}</button></div>
+    </div>
     </div>
   </div>
 }

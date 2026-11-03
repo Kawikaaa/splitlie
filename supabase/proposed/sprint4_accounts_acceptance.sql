@@ -38,14 +38,15 @@ begin
  update public.financial_accounts set archived_at=now() where id=fixture;
  if not exists(select 1 from public.financial_accounts where id=fixture and archived_at is not null) then raise exception 'Archive failed'; end if;
  update public.financial_accounts set archived_at=null where id=fixture;
- begin
-  delete from public.financial_accounts where id=fixture;
-  raise exception 'Permanent deletion accepted';
- exception when insufficient_privilege then null; end;
+ -- Owner deletion is now enabled. Verify stale versions cannot delete instead.
+ delete from public.financial_accounts where id=fixture and updated_at='1900-01-01'::timestamptz;
+ if found then raise exception 'Stale delete accepted'; end if;
  perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
  if exists(select 1 from public.financial_accounts where id=fixture) then raise exception 'Foreign read accepted'; end if;
  update public.financial_accounts set balance=999 where id=fixture;
  if found then raise exception 'Foreign write accepted'; end if;
+ delete from public.financial_accounts where id=fixture;
+ if found then raise exception 'Foreign delete accepted'; end if;
  begin
   insert into public.financial_accounts(user_id,space_id,name,type,currency,balance) values(owner_id,personal_id,'__spoofed_owner__','cash','USD',1);
   raise exception 'Foreign insertion accepted';

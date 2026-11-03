@@ -1,5 +1,14 @@
 # Current Sprint — Personal Space V2 Prototype
 
+> Current status (2026-11-02): this file preserves the earlier prototype sprint.
+> Latest three local sprints completed: [save recovery, one-week recap and evidence return](docs/journey-sprints.md). Stable operation IDs cover ordinary personal entry; committed-save refresh failure is recoverable without another write. Recap and AI share one selected week, evidence links return to it, and transaction reads paginate/fail closed. 182 tests pass; production build passes. Desktop/mobile/five-language UI and read-only test-account navigation checked. No model call, ledger write, cloud change, frontend release or Git push this round. See PROJECT_STATUS.md for remaining work.
+> Completed scoped sprint: [isolated total-only receipt persistence acceptance](docs/receipt-persistence-sprint.md). After separate approval, actual save/refresh/edit/account/status/retry/rollback/RLS checks passed on the dedicated test identity. Two synthetic accounts and three transactions cleaned; database fixture counts both0.170 tests/build pass. No model/schema/permission/deployment changes. Post-save re-login, FX, itemized mode and broader receipt evaluation remain open.
+> Latest local follow-up: [receipt save reliability](docs/receipt-save-reliability.md). 166 tests pass; unfinished optional items no longer block total-only payloads, and manually entered amount provenance survives reopen. Repository retry/conflict cases use an in-memory client, not a live database/browser persistence acceptance. No additional model/cloud/write actions.
+> Latest iteration: [total-first receipt flow](docs/receipt-total-first.md). 155 tests pass. After separate approval, ai-assistant v7 is deployed; two clear synthetic receipts correctly autofilled totals/currency/date in 7.2s/4.6s without saving. Full receipt evaluation and isolated persistence E2E remain open. Today's 4-receipt cap is reached; no quota increase/reset.
+> Latest P0-A reliability update: [receipt and weekly review status](docs/ai-assistant-p0-reliability.md). 147 tests pass; ai-assistant v6 deployed after separate approval and read-only verified. No model/ledger write tests, database migration, frontend release or Git push this round.
+> Read [PROJECT_STATUS.md](PROJECT_STATUS.md) and [AI Sprints 6–8](docs/ai-assistant-sprints-6-8.md) for current progress.
+> Text drafts, receipt extraction, grounded weekly reviews and tracked small actions are implemented as a limited pilot. Cloud schema and endpoint are deployed; broader model evaluation and full browser persistence acceptance remain open. Local/manual entry remains available.
+
 ## Scope
 
 Build a coherent, testable Personal Space V2 before interviews. Every new surface is an **unvalidated solution hypothesis**; the prototype is designed to generate evidence, not to imply product-market fit.

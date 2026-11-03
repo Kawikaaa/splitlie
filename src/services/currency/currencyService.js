@@ -52,17 +52,7 @@ export function convertCurrency({ amount, rate, toCurrency = 'USD' }) {
   return roundCurrency(numericAmount * numericRate, toCurrency)
 }
 
-export function hasAccountingAmount(transaction) {
-  if (!transaction) return false
-  const status = transaction.conversion_status || 'converted'
-  return !['pending', 'failed'].includes(status) &&
-    Number.isFinite(Number(transaction.base_amount ?? transaction.amount))
-}
-
-export function getAccountingAmount(transaction) {
-  if (!hasAccountingAmount(transaction)) return null
-  return Number(transaction.base_amount ?? transaction.amount)
-}
+export { hasAccountingAmount, getAccountingAmount } from '../../../supabase/functions/_shared/accountingAmount.js'
 
 export function getAccountingCurrency(transaction, fallback = 'USD') {
   return normalizeCurrency(

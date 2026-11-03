@@ -27,6 +27,7 @@ import { useLanguage } from './i18n/LanguageContext'
 import {
   createSharedSpace,
   fetchSpaces,
+  fetchTransactions,
   updateSpacePinned,
 } from './data/ledgerApi'
 
@@ -40,6 +41,7 @@ export default function App() {
 
   const [spaces, setSpaces] = useState([])
   const [spacesLoading, setSpacesLoading] = useState(false)
+  const [spacesLoadedForUser, setSpacesLoadedForUser] = useState(null)
   const [spacesError, setSpacesError] = useState('')
   const [activeSpaceId, setActiveSpaceId] = useState(null)
 
@@ -91,6 +93,7 @@ export default function App() {
   useEffect(() => {
     if (!session?.user) {
       setSpaces([])
+      setSpacesLoadedForUser(null)
       setActiveSpaceId(null)
       setSpacesError('')
       return
@@ -150,6 +153,7 @@ export default function App() {
       setSpacesError(t('spacesLoadError'))
       return []
     } finally {
+      setSpacesLoadedForUser(session?.user?.id ?? null)
       setSpacesLoading(false)
     }
   }
@@ -332,10 +336,17 @@ export default function App() {
     setEditingTransaction(null)
   }
 
-  function handleTransactionSaved() {
-    setRefreshKey(
-      (current) => current + 1
-    )
+  async function handleTransactionSaved() {
+    // Personal saves are already committed here. Surface a failed read without
+    // making the modal offer another write; views still receive invalidation.
+    try {
+      if (activeSpace?.type === 'personal') {
+        const result = await fetchTransactions(activeSpace.id)
+        if (result.error) throw result.error
+      }
+    } finally {
+      setRefreshKey((current) => current + 1)
+    }
   }
 
   function handleSpaceChange(spaceId) {
@@ -450,10 +461,11 @@ export default function App() {
   }
 
   if (
+    spacesLoadedForUser !== session.user.id ||
     spacesLoading ||
     !activeSpace
   ) {
-    if (!spacesLoading && (spacesError || !activeSpace)) {
+    if (spacesLoadedForUser === session.user.id && !spacesLoading && (spacesError || !activeSpace)) {
       return <div className="app-recovery-page"><section className="panel empty-state"><h1>{t('workspace')}</h1><p role="alert">{spacesError || t('spacesLoadError')}</p><button className="primary" type="button" onClick={loadSpaces}>{t('retry')}</button></section></div>
     }
     return <AppLoadingShell label={t('loadingYourMoney')} />
